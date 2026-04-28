@@ -1,10 +1,15 @@
 import { Inter } from 'next/font/google';
 import { Provider } from '@/components/provider';
+import type { Metadata } from 'next';
 import './global.css';
 
 const inter = Inter({
   subsets: ['latin'],
 });
+
+export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? 'https://docs.odock.ai'),
+};
 
 export default function Layout({ children }: LayoutProps<'/'>) {
   return (
