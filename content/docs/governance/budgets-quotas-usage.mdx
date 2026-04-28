@@ -1,0 +1,181 @@
+---
+title: Budgets, Quotas, Usage, And Billing
+description: Understand spend controls, quota controls, usage records, and billing calculations.
+---
+
+# Budgets, Quotas, Usage, And Billing
+
+Odock records usage and can enforce budget and quota policies before upstream calls are made.
+
+## Usage Data Model
+
+The platform stores two kinds of usage data:
+
+| Table | Purpose |
+| --- | --- |
+| `Usage` | Rollups for dashboards and aggregate metrics |
+| `UsageRecord` | Lossless per-request LLM usage, billing, provider usage, routing metadata |
+| `McpUsageRecord` | MCP-specific usage, bytes, tool, server, transport, and cost details |
+
+`UsageRecord` stores:
+
+- request ID,
+- organisation, team, user, API key,
+- provider,
+- model,
+- model ID,
+- region,
+- token JSON,
+- billing JSON,
+- raw provider usage,
+- routing metadata,
+- timestamp,
+- latency,
+- HTTP status,
+- provider request ID,
+- billable tokens,
+- total cost in nanos USD.
+
+`McpUsageRecord` stores:
+
+- MCP server,
+- organisation, team, user, API key,
+- transport,
+- JSON-RPC method,
+- tool name,
+- endpoint,
+- status,
+- latency,
+- input and output bytes,
+- billing JSON,
+- metadata,
+- total cost in nanos USD.
+
+## Token Breakdown
+
+The usage pipeline normalizes provider usage into:
+
+- prompt tokens,
+- completion tokens,
+- input details by modality,
+- output details by modality,
+- cached tokens,
+- rejected tokens,
+- tool usage,
+- embeddings tokens,
+- total tokens.
+
+Providers with normalizers:
+
+- OpenAI
+- Anthropic
+- Gemini
+- vLLM
+- MCP
+
+Endpoint-aware semantics handle special cases such as embeddings and image generation so those tokens are billed in the right bucket.
+
+## Billing
+
+Billing uses model pricing to produce a deterministic `BillingTokens` object.
+
+Costs are computed in integer nanos USD:
+
+```text
+1 USD = 1,000,000,000 nanos USD
+```
+
+The calculator supports:
+
+- input text/image/audio/video/reasoning rates,
+- output text/image/audio/video/reasoning rates,
+- cached input discount,
+- tool definition/input/output rates,
+- embeddings rate,
+- total cost in nanos and human USD fields.
+
+If pricing is missing, usage can still be recorded, but cost fields may be absent.
+
+## Budgets
+
+Budgets cap spend.
+
+Fields:
+
+- `name`
+- `ownerType`: `ORG`, `TEAM`, `USER`, `APIKEY`
+- owner IDs according to owner type
+- `period`: `DAILY`, `WEEKLY`, `MONTHLY`, `QUARTERLY`
+- optional `startAt` and `endAt`
+- optional `timezone`
+- `currency`
+- `amountNanosUsd`
+- `rollover`
+- `thresholds`
+- `active`
+
+Only active budgets participate in enforcement.
+
+## Quotas
+
+Quotas cap usage metrics.
+
+Fields:
+
+- `name`
+- `ownerType`: `ORG`, `TEAM`, `USER`, `APIKEY`
+- owner IDs according to owner type
+- `metric`: `REQUESTS`, `TOKENS`, `TOKENS_IN`, `TOKENS_OUT`, `ERRORS`, `COST`, `LATENCY_MS`
+- `limit`
+- `period`
+- optional `startAt` and `endAt`
+- optional `timezone`
+- `rollover`
+- `active`
+
+## Enforcement Flow
+
+For LLM requests:
+
+1. Gateway authenticates and decodes enough request context.
+2. Gateway estimates usage from requested model, max tokens, pricing, and rate-limit receipt.
+3. `budgetenforcer.Reserve` creates a `BudgetRequest`.
+4. Active budgets and quotas for organisation, team/user, and API key scopes are collected.
+5. Budget and quota windows are upserted.
+6. Reserved counters are increased only if `used + reserved + estimate <= limit`.
+7. Reservation rows are inserted.
+8. The upstream request proceeds.
+9. Usage is normalized and billed.
+10. `budgetenforcer.Settle` replaces reserved values with actual values.
+11. If the request fails before completion, `budgetenforcer.Release` frees reservations.
+
+For MCP requests:
+
+- estimated cost is based on MCP pricing and request bytes;
+- actual MCP cost uses input/output bytes and call pricing;
+- usage sidecar records are stored in `McpUsageRecord`.
+
+## Idempotency
+
+Budget operations are keyed by request ID:
+
+- reserve twice is safe,
+- settle twice is safe,
+- release twice is safe.
+
+This matters for retries and worker reconciliation.
+
+## Worker Reconciliation
+
+The gateway starts a budget worker. It periodically:
+
+- expires stale reserved requests,
+- releases stale reservations,
+- settles pending requests when a matching usage record exists.
+
+This protects correctness when the gateway crashes after reserve but before settle.
+
+## Invoices
+
+The current UI invoice surface builds previews and exports from usage data. It does not yet create persisted invoice records. Treat invoice pages as reporting over usage records, not as a finalized billing ledger.
+

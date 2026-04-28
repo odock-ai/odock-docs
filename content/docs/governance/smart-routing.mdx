@@ -1,0 +1,170 @@
+---
+title: Smart Routing
+description: Configure failover, priority, round-robin, and native fallback routing.
+---
+
+# Smart Routing
+
+Smart routing lets Odock choose or fail over between configured model entries instead of always using the originally requested model.
+
+Smart routing has two switches:
+
+1. Organisation-level routing must be enabled.
+2. The API key must have a routing policy.
+
+## Enable Routing For An Organisation
+
+Organisation policies store:
+
+```json
+{
+  "routing": {
+    "enabled": true
+  }
+}
+```
+
+The UI route:
+
+```text
+GET/PATCH /api/organisations/:organisationId/routing
+```
+
+updates this setting.
+
+## Configure Routing On An API Key
+
+API key policies store:
+
+```json
+{
+  "routing": {
+    "chat": {
+      "strategy": "failover",
+      "candidates": [
+        { "modelName": "primary-chat", "priority": 1 },
+        { "modelName": "backup-chat", "priority": 2 }
+      ],
+      "failoverOn": ["5xx", "timeout"],
+      "maxRetries": 2,
+      "retryDelayMs": 100
+    }
+  }
+}
+```
+
+The UI routes:
+
+```text
+GET/PATCH /api/admin/apikeys/:id/routing
+GET/PATCH /api/organisations/:organisationId/apikeys/:id/routing
+```
+
+read and update the API key routing payload.
+
+## Model Type Policies
+
+Routing policies are keyed by model type:
+
+- `chat`
+- `reasoning`
+- `image`
+- `embeddings`
+- `audio`
+- `moderation`
+- `transcription`
+- `tts`
+
+When a request arrives, the gateway resolves the requested model's type and selects the routing policy for that type.
+
+## Strategies
+
+### Failover
+
+```json
+{
+  "strategy": "failover",
+  "candidates": [
+    { "modelName": "gpt-4.1", "priority": 1 },
+    { "modelName": "claude-sonnet", "priority": 2 }
+  ]
+}
+```
+
+Candidates are tried in priority order. Lower priority number means earlier attempt.
+
+### Priority
+
+`priority` is an alias-like strategy for ordered failover intent.
+
+### Round Robin
+
+```json
+{
+  "strategy": "round_robin",
+  "candidates": [
+    { "modelName": "chat-a", "priority": 1 },
+    { "modelName": "chat-b", "priority": 2 }
+  ]
+}
+```
+
+The gateway rotates which candidate is attempted first for that API key.
+
+## Native Provider Fallback
+
+Provider-native endpoints such as OpenAI-compatible `/v1/chat/completions` pin a provider. For those endpoints, use `nativeFallback`.
+
+```json
+{
+  "routing": {
+    "chat": {
+      "strategy": "failover",
+      "nativeFallback": {
+        "openai": ["openai-backup-chat"],
+        "vllm": ["local-backup-chat"]
+      },
+      "failoverOn": ["5xx", "timeout", "rate_limit"]
+    }
+  }
+}
+```
+
+The original requested model is prepended automatically. Fallbacks are filtered to the same model type.
+
+## Failover Conditions
+
+Supported values:
+
+- `5xx`
+- `timeout`
+- `rate_limit`
+- `any`
+
+Default:
+
+```json
+["5xx", "timeout"]
+```
+
+## Routing Metadata In Usage
+
+When smart routing is active, usage records include routing metadata:
+
+- attempts,
+- candidate model,
+- provider,
+- outcome,
+- error class when a candidate fails.
+
+The UI usage table shows a routing indicator for routed records.
+
+## Cache Invalidation
+
+Routing uses Redis cache keys for:
+
+- organisation enabled flag,
+- API key routing policy.
+
+When configured, the UI notifies the gateway after organisation or API key policy mutations. Otherwise the gateway sees updates after `SMART_ROUTING_POLICY_CACHE_TTL`.
+

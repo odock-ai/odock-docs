@@ -1,0 +1,162 @@
+---
+title: LLM Gateway API
+description: Supported LLM endpoints and request formats.
+---
+
+# LLM Gateway API
+
+The gateway exposes provider-native compatibility endpoints and an Odock-native unified endpoint.
+
+## Authentication
+
+Use an Odock API key:
+
+```bash
+curl http://localhost:8080/v1/chat/completions \
+  -H "Authorization: Bearer $ODOCK_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"model":"my-chat-model","messages":[{"role":"user","content":"Hello"}]}'
+```
+
+## Odock-Native Chat
+
+```text
+POST /v1/llm/chat
+```
+
+This endpoint uses the gateway's unified request and response shapes.
+
+Request:
+
+```json
+{
+  "provider": "openai",
+  "model": "my-chat-model",
+  "messages": [
+    { "role": "user", "content": "Write a short summary." }
+  ],
+  "temperature": 0.2,
+  "max_tokens": 512,
+  "stream": false
+}
+```
+
+`provider` is optional for the unified endpoint. If omitted, model configuration and smart routing determine the upstream provider.
+
+## OpenAI-Compatible Endpoints
+
+Supported:
+
+```text
+POST /v1/chat/completions
+POST /v1/responses
+POST /v1/embeddings
+POST /v1/images/generations
+POST /v1/images/edits
+POST /v1/images/variations
+```
+
+These endpoints decode OpenAI-shaped payloads into the gateway request model and transform responses back to OpenAI-style shapes.
+
+The OpenAI-compatible routes set `RequiredProvider` to OpenAI, so a request cannot force another provider through the body.
+
+## Anthropic-Compatible Endpoint
+
+Supported:
+
+```text
+POST /v1/messages
+```
+
+The gateway decodes Anthropic messages and adapts response/stream behavior.
+
+## Gemini-Compatible Endpoint
+
+Supported:
+
+```text
+POST /v1beta/models/:model:generateContent
+POST /v1beta/models/:model:streamGenerateContent
+```
+
+The route is registered under:
+
+```text
+/v1beta/models/
+```
+
+Gemini clients can send the Odock API key with `x-goog-api-key` or query parameter `key`.
+
+## vLLM-Compatible Endpoints
+
+Supported:
+
+```text
+GET/POST /v1/vllm/models
+POST /v1/vllm/chat/completions
+POST /v1/vllm/completions
+POST /v1/vllm/responses
+POST /v1/vllm/embeddings
+POST /v1/vllm/audio/transcriptions
+POST /v1/vllm/audio/translations
+POST /v1/vllm/tokenize
+POST /v1/vllm/detokenize
+POST /v1/vllm/pooling
+POST /v1/vllm/classify
+POST /v1/vllm/score
+POST /v1/vllm/rerank
+```
+
+The vLLM provider is treated as OpenAI-compatible for many payloads, with vLLM-specific endpoints preserved.
+
+## Request Fields
+
+The normalized gateway request can carry:
+
+- provider,
+- model,
+- messages,
+- temperature,
+- max tokens,
+- top-p,
+- top-k,
+- stop sequences,
+- presence penalty,
+- frequency penalty,
+- seed,
+- metadata,
+- response format,
+- tools,
+- tool choice,
+- stream flag,
+- raw provider payload,
+- upstream base URL, API key, timeout, and model override.
+
+## Response Fields
+
+The normalized gateway response can carry:
+
+- provider name,
+- model,
+- content,
+- stop reason,
+- content blocks,
+- tool calls,
+- input tokens,
+- output tokens,
+- raw provider usage,
+- provider request ID,
+- raw provider response.
+
+## Common Gateway Statuses
+
+| Status | Meaning |
+| --- | --- |
+| `400` | Invalid request, provider mismatch, unsupported model/provider config |
+| `401` | Missing or invalid Odock API key |
+| `403` | Model/MCP access denied, plugin block, SafetySec block |
+| `402` | Budget exceeded |
+| `429` | Rate limit or quota exceeded |
+| `502` | Upstream provider failure |
+| `503` | Required gateway dependency unavailable |
+

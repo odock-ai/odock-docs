@@ -1,0 +1,128 @@
+---
+title: Platform Map
+description: How the server, control plane, database, cache, and observability stack fit together.
+---
+
+# Platform Map
+
+Odock is split into layers so that governance configuration and request enforcement remain separate.
+
+## Layer 1: Gateway Runtime
+
+The gateway lives in `odock-server`.
+
+Important areas:
+
+- `cmd/gateway/main.go`: startup wiring.
+- `internal/config`: environment configuration and validation.
+- `internal/httpserver`: HTTP server, middleware, routes, and endpoint lifecycle.
+- `internal/auth`: API key extraction, lookup, and Redis cache.
+- `internal/provider`: provider router and common request/response shapes.
+- `internal/provider/openai`, `anthropic`, `gemini`, `vllm`: upstream integrations.
+- `internal/modelcache`: model lookup, API-key access cache, provider credential resolution, pricing lookup.
+- `internal/mcpcache`: MCP server lookup cache.
+- `internal/ratelimit`: staged policy resolver and Redis-backed gates.
+- `internal/budgetenforcer`: Postgres-backed reservation, settlement, release, and worker reconciliation.
+- `internal/usage`: usage normalization, billing, collector, rollups, and per-request records.
+- `internal/safetysec`: modular security engine.
+- `internal/plugin`: lifecycle plugin chain.
+- `internal/cacheinvalidator`: UI-to-gateway cache invalidation commands.
+- `internal/observability`: metrics, traces, attributes, runtime telemetry, Prometheus handler.
+- `logger`: structured multi-organisation logging.
+
+The server is the only component that calls upstream LLM and MCP providers.
+
+## Layer 2: Control Plane
+
+The control plane lives in `odock-ui`.
+
+Important areas:
+
+- `app/admin/*`: super-admin pages.
+- `app/[organisation]/*`: organisation-scoped pages.
+- `app/api/admin/*`: super-admin API routes.
+- `app/api/organisations/[organisationId]/*`: organisation-scoped API routes.
+- `auth.ts`: Better Auth configuration with GitHub social login and Prisma persistence.
+- `proxy.ts`: page-route authentication redirect.
+- `lib/rbac`: role-based access control, route-to-resource mapping, custom API rules, team membership loading.
+- `lib/api`: generic admin and organisation API handlers.
+- `db`: Prisma helper functions.
+- `validation`: Zod schemas for user input.
+- `components/table/config`: list-view table definitions.
+- `components/forms/config`: modal form definitions.
+- `components/ressource/custom-cards`: detail-page cards for sensitive or domain-specific sections.
+- `lib/provider/provider-key-crypto.ts`: browser-side provider-key envelope encryption.
+- `lib/prisma-cache-invalidation.ts`: Prisma extension that notifies the gateway after relevant mutations.
+- `lib/ai/playground-chat.ts`: AI SDK based playground client through the gateway.
+- `lib/invoicing`: invoice preview aggregation.
+
+The UI owns configuration. The gateway owns enforcement.
+
+## Layer 3: Persistence
+
+Odock uses two primary data stores.
+
+Postgres stores durable configuration and accounting:
+
+- Users, sessions, accounts, verification tokens.
+- Organisations and organisation invitations.
+- Teams and team memberships.
+- API keys and API key access grants.
+- Providers, provider API keys, and models.
+- MCP servers, MCP access grants, and MCP usage records.
+- Usage rollups and usage records.
+- Budgets, quotas, windows, requests, and reservations.
+
+Redis stores hot-path operational state:
+
+- API key authentication cache.
+- Negative auth cache.
+- Rate-limit counters, leases, reservations, overlays, and policies.
+- Model and MCP metadata cache.
+- Smart routing cache.
+- Usage collector aggregates before flush.
+- SafetySec sessions.
+- Cache invalidation pub/sub.
+
+## Layer 4: Observability
+
+The optional observability profile in root `docker-compose.yml` runs:
+
+- Prometheus for metrics and alerts.
+- Loki for logs.
+- Tempo for traces.
+- Grafana for dashboards and Explore.
+- OpenTelemetry Collector for OTLP traces, metrics, and logs.
+- Promtail for container and host log collection.
+- Alertmanager.
+- Node Exporter, cAdvisor, Redis exporter, Postgres exporter.
+
+Default local ports:
+
+| Service | URL |
+| --- | --- |
+| UI through Traefik | `http://odock.home.arpa` |
+| Gateway through Traefik | `http://api.odock.home.arpa` |
+| Gateway direct | `http://localhost:8080` |
+| Postgres | `localhost:5432` |
+| Redis | `localhost:6379` |
+| Grafana | `http://127.0.0.1:3001` |
+| Prometheus | `http://127.0.0.1:9091` |
+| Alertmanager | `http://127.0.0.1:9093` |
+| Loki | `http://127.0.0.1:3100` |
+| Tempo | `http://127.0.0.1:3200` |
+| OTLP HTTP | `127.0.0.1:4318` |
+| OTLP gRPC | `127.0.0.1:4317` |
+
+## Shared Request Identity
+
+The gateway creates or propagates a request ID. It sets the ID on request/response headers, stores it in context, uses it in logs, uses it for usage records, uses it for rate-limit receipts, and uses it as the key for budget reservations.
+
+This is the main correlation handle across:
+
+- Gateway logs.
+- Gateway spans.
+- Usage records.
+- Budget requests and reservations.
+- Rate-limit post-flight reconciliation.
+

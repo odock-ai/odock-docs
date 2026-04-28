@@ -1,0 +1,132 @@
+---
+title: Docker Quickstart
+description: Start the full Odock platform locally with Docker Compose.
+---
+
+# Docker Quickstart
+
+The fastest way to run Odock is the root Docker Compose stack. It starts Postgres, Redis, Traefik, `odock-server`, `odock-ui`, and a one-shot Prisma migration container. The observability stack is optional and enabled with a Compose profile.
+
+## Prerequisites
+
+- Docker Engine with the Compose plugin.
+- Submodules checked out if this workspace is cloned as a parent repository.
+- Hostnames mapped if you want to use Traefik routes.
+
+For local hostnames, add entries similar to:
+
+```text
+127.0.0.1 odock.home.arpa
+127.0.0.1 api.odock.home.arpa
+127.0.0.1 grafana.odock.home.arpa
+```
+
+## Start The Platform
+
+From the workspace root:
+
+```bash
+docker compose up --build -d
+```
+
+This starts:
+
+- `postgres`
+- `redis`
+- `traefik`
+- `ui-migrate`
+- `ui`
+- `server`
+
+Open:
+
+- UI: `http://odock.home.arpa`
+- Gateway: `http://api.odock.home.arpa`
+- Direct gateway health: `http://localhost:8080/v1/health`
+
+## Start With Observability
+
+To start the LGTM stack too:
+
+```bash
+docker compose --profile observability up --build -d
+```
+
+Open Grafana at:
+
+```text
+http://127.0.0.1:3001
+```
+
+The default Grafana username comes from `GRAFANA_ADMIN_USER` and the password from `GRAFANA_ADMIN_PASSWORD`. If you do not override them, the Compose defaults are used.
+
+## Important Runtime Files
+
+The root Compose file mounts configuration into the gateway container:
+
+| Host file | Container path | Purpose |
+| --- | --- | --- |
+| `docker/server.env` | env file | Gateway runtime env |
+| `docker/ui.env` | env file | UI runtime env |
+| `docker/server/plugins.json` | `/app/configs/plugins.json` | Plugin list and phase plan |
+| `docker/server/logger.yaml` | `/app/configs/logger.yaml` | Logger config |
+| `${ODOCK_SERVER_LOGS_PATH:-./odock-server/logs}` | `/app/logs` | Optional file logs |
+
+The UI image also receives provider-key encryption public values as build args. When those values change, rebuild the UI image.
+
+## Provider Key Encryption Setup
+
+Provider API keys should be encrypted in the browser before they are stored. The browser needs a public key, and `odock-server` needs the matching private key.
+
+Use the helper script if available in your checkout:
+
+```bash
+./docker/scripts/generate-provider-key-encryption-env.sh
+docker compose up --build -d
+```
+
+Manual setup:
+
+1. Generate an RSA key pair.
+2. Set the same key ID in the UI and server env.
+3. Put the public key in `NEXT_PUBLIC_PROVIDER_KEY_ENCRYPTION_PUBLIC_KEY`.
+4. Put the private key in `PROVIDER_KEY_ENCRYPTION_PRIVATE_KEY`.
+5. Rebuild the UI.
+6. Restart the gateway.
+
+Never expose the private key through `NEXT_PUBLIC_*`.
+
+## Check Health
+
+Gateway basic health:
+
+```bash
+curl http://localhost:8080/v1/health
+```
+
+Gateway readiness with Postgres and Redis:
+
+```bash
+curl http://localhost:8080/v1/healthz
+```
+
+Prometheus metrics, when enabled:
+
+```bash
+curl http://localhost:8080/metrics
+```
+
+## Stop
+
+```bash
+docker compose down
+```
+
+To remove volumes too:
+
+```bash
+docker compose down -v
+```
+
+Use volume removal carefully because it deletes Postgres, Redis, Grafana, Prometheus, Loki, and Tempo local state.
+

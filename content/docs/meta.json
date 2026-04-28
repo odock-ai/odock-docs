@@ -1,0 +1,14 @@
+{
+  "title": "Documentation",
+  "pages": [
+    "index",
+    "introduction",
+    "installation",
+    "gateway",
+    "governance",
+    "platform-operations",
+    "observability",
+    "reference",
+    "support"
+  ]
+}
