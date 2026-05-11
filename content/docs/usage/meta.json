@@ -1,5 +1,6 @@
 {
   "title": "Usage",
+  "icon": "Route",
   "pages": [
     "index",
     "native-models-call",

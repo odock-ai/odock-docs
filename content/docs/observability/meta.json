@@ -1,5 +1,6 @@
 {
   "title": "Observability",
+  "icon": "Activity",
   "pages": [
     "index",
     "usage-monitoring",

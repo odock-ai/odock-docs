@@ -1,5 +1,6 @@
 {
   "title": "Models & MCP",
+  "icon": "Bot",
   "pages": [
     "index",
     "providers",

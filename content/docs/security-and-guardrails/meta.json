@@ -1,5 +1,6 @@
 {
   "title": "Security & Guardrails",
+  "icon": "ShieldCheck",
   "pages": [
     "index",
     "guardrails",

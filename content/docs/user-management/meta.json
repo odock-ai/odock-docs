@@ -1,5 +1,6 @@
 {
   "title": "User Management",
+  "icon": "Users",
   "pages": [
     "index",
     "organisation",

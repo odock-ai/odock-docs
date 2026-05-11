@@ -1,5 +1,6 @@
 {
   "title": "Self Host",
+  "icon": "Server",
   "pages": [
     "index",
     "quickstart",

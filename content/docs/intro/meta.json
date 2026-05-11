@@ -1,5 +1,6 @@
 {
   "title": "Intro",
+  "icon": "Rocket",
   "pages": [
     "index",
     "architecture",

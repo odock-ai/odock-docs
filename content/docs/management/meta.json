@@ -1,5 +1,6 @@
 {
   "title": "Management",
+  "icon": "Settings2",
   "pages": [
     "index",
     "virtual-api-keys",
