@@ -1,0 +1,42 @@
+---
+title: SafetySec Engine
+---
+
+# SafetySec Engine
+
+SafetySec is the modular safety engine in `odock-server/internal/safetysec`.
+
+## Architecture
+
+SafetySec runs modules through a planned pipeline. Sequential modules can mutate via effects; parallel modules receive cloned context. It keeps per-sender session state in Redis using a fingerprint based on request context.
+
+## Phases & lifecycle
+
+Supported phases are `pre_auth`, `post_auth`, `pre_upstream`, `post_upstream`, `stream`, and `post_response`. The active built-in plan currently focuses on `pre_upstream` and `post_upstream`.
+
+## Modules
+
+Built-in modules are:
+
+- Prompt injection detection.
+- Jailbreak pattern detection.
+- Sensitive data redaction.
+- Data leakage detection.
+
+Enable with `SAFETY_ENGINE_MODE=security`. Default mode is `noop`.
+
+## Usage
+
+Configure:
+
+```bash
+SAFETY_ENGINE_MODE=security
+SAFETY_SESSION_TTL=24h
+SAFETY_BLOCK_THRESHOLD=0.85
+```
+
+When a module blocks, the gateway returns a structured gateway error. When a module redacts, the modified request or response continues through the pipeline.
+
+## Custom Security Module
+
+Create a module implementing `Name`, `Phases`, `Matches`, `ParallelSafe`, and `Handle`, then register it in `internal/safetysec/builtin/register.go` or during startup.

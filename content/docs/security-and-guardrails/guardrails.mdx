@@ -1,0 +1,35 @@
+---
+title: Guardrails
+---
+
+# Guardrails
+
+Guardrails are the governance rules that can allow, block, redact, limit, route, or record traffic. Some are configured in UI policies; others live in SafetySec modules or plugins.
+
+## Architecture
+
+Guardrails are applied at different layers:
+
+- UI RBAC controls who can configure resources.
+- API key auth controls runtime access.
+- Model and MCP access grants control what a key may call.
+- Policies apply IP, rate, payload, token, and concurrency limits.
+- SafetySec handles prompt injection, jailbreak, sensitive data, and leakage checks.
+- Plugins handle extension logic.
+- Budgets and quotas enforce cost and usage limits.
+
+## Phases & lifecycle
+
+The LLM lifecycle includes pre-auth, post-auth, pre-route, early gate, model access, final gate, budget/quota reservation, pre-upstream safety/plugins, upstream call, post-upstream safety/plugins, response write, usage recording, post-response safety/plugins, and post-flight reconciliation.
+
+## Hierarchy of Application
+
+The policy hierarchy is global, organisation, team, API key, and model/MCP scope. More scopes can contribute limits; the request must pass the applicable controls.
+
+## Guardrails Modules and types
+
+Current guardrail types include IP allow/block lists, request/token/concurrency limits, model access grants, MCP access grants, MCP allowed/blocked tools, MCP semantic filters, SafetySec modules, plugins, budgets, quotas, and smart routing constraints.
+
+## Custom Guardrail
+
+For custom request/response logic, implement a plugin under `odock-server/internal/plugins/<name>` and register it through the plugin registry and `configs/plugins.json`. For safety-specific checks, add a SafetySec module under `internal/safetysec/modules`.

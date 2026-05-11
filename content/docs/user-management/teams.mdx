@@ -1,0 +1,35 @@
+---
+title: Teams
+---
+
+# Teams
+
+Teams group users and provide a scope for API keys, budgets, quotas, and MCP servers.
+
+## Add Team
+
+Create a team with a name and organisation. After creation, add members and create team-scoped API keys as needed.
+
+## Members
+
+Team members connect users to teams. A user can belong to multiple teams.
+
+### Members Roles
+
+Team member roles are `MANAGER` and `MEMBER`. Managers can receive team-management permissions through RBAC.
+
+## API Keys
+
+Team API keys are virtual keys scoped to a specific team. They inherit organisation context and can be constrained by team budgets, quotas, policies, model access, and MCP access.
+
+## Guardrails
+
+Team policies can include IP allow/block lists and rate-limit settings. Runtime safety guardrails are explained in [Guardrails](/docs/security-and-guardrails/guardrails).
+
+## Budget & Quotas
+
+Team budgets and quotas apply when a team-scoped API key is used. See [Budgets](/docs/management/budgets) and [Quotas](/docs/management/quotas).
+
+## Usage Records
+
+Team usage records make cost and traffic visible at team level. They are derived from gateway usage records and can be filtered by model, provider, API key, status, and time.

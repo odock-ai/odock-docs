@@ -1,0 +1,22 @@
+---
+title: Unified Multi Model Endpoint call
+---
+
+# Unified Multi Model Endpoint call
+
+Use `/v1/llm/chat` for Odock's unified request/response shape. This endpoint is useful for multi-provider routing because it is not pinned to OpenAI, Anthropic, Gemini, or vLLM.
+
+Example:
+
+```bash
+curl http://localhost:8080/v1/llm/chat \
+  -H "Authorization: Bearer sk_your_dock_virtual_key" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "claude-sonnet-4-5",
+    "messages": [{"role": "user", "content": "Explain budget enforcement"}],
+    "max_tokens": 200
+  }'
+```
+
+For routing behavior, see [Routing](/docs/management/routing). For model setup, see [Models](/docs/models-and-mcp/models).

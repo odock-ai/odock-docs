@@ -1,0 +1,14 @@
+---
+title: Native Models call
+---
+
+# Native Models call
+
+Native calls pin the endpoint to a provider family:
+
+- OpenAI-compatible: `/v1/chat/completions`, `/v1/responses`, `/v1/embeddings`, `/v1/images/generations`, `/v1/images/edits`, `/v1/images/variations`
+- Anthropic-compatible: `/v1/messages`
+- Gemini-compatible: `/v1beta/models/{model}:generateContent`
+- vLLM-compatible: `/v1/vllm/*`
+
+The important operational rule is that the model name must match a model configured in the organisation, and the virtual API key must have access to that model. The gateway then rewrites the upstream model slug, provider base URL, timeout, and provider credential from the model configuration.

@@ -2,13 +2,14 @@
   "title": "Documentation",
   "pages": [
     "index",
-    "introduction",
-    "installation",
-    "gateway",
-    "governance",
-    "platform-operations",
+    "usage",
+    "user-management",
+    "models-and-mcp",
+    "management",
+    "security-and-guardrails",
+    "plugins",
+    "tools",
     "observability",
-    "reference",
-    "support"
+    "self-host"
   ]
 }

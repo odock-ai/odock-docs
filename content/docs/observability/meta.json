@@ -1,4 +1,8 @@
 {
   "title": "Observability",
-  "pages": ["operating-the-stack", "dashboards-alerts-and-logs"]
+  "pages": [
+    "index",
+    "usage-monitoring",
+    "lgtm-stack"
+  ]
 }

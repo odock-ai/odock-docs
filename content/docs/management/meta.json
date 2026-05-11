@@ -1,0 +1,10 @@
+{
+  "title": "Management",
+  "pages": [
+    "index",
+    "virtual-api-keys",
+    "routing",
+    "budgets",
+    "quotas"
+  ]
+}

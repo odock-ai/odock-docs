@@ -1,0 +1,22 @@
+---
+title: Endpoints
+---
+
+# Endpoints
+
+Endpoints are the HTTP surfaces used by applications. They are protected by virtual API keys.
+
+## Native Provider Endpoints
+
+Use native endpoints when you want SDK compatibility:
+
+- OpenAI SDK: set `base_url` to `http://localhost:8080/v1`.
+- Anthropic SDK: set `base_url` to `http://localhost:8080`.
+- vLLM clients: use `/v1/vllm/...`.
+- Gemini clients: use `/v1beta/models/...`.
+
+Native endpoints pin the provider family and reject requests that try to force a different provider.
+
+## Multi-Model Endpoint
+
+Use `/v1/llm/chat` for a provider-neutral Odock endpoint. Smart routing can then try candidates across configured models and providers as long as the API key has access to those models.

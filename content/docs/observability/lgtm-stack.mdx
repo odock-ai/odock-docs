@@ -1,0 +1,42 @@
+---
+title: LGTM Stack
+---
+
+# LGTM Stack
+
+The self-host observability profile uses Loki, Grafana, Tempo, and Prometheus.
+
+## Architecture
+
+`odock-server` exposes `/metrics`, exports traces through OTLP HTTP, and writes structured logs to stdout. Prometheus stores metrics, Loki stores logs, Tempo stores traces, and Grafana reads all three.
+
+## Logs
+
+Default logs go to stdout and are scraped by Promtail into Loki. Optional rotated file archive and S3-compatible archive configs are available under `docs/observability/examples`.
+
+## Traces
+
+Traces are exported to the OpenTelemetry collector and stored in Tempo. Request spans include gateway auth, routing, provider calls, usage collection, rate limits, budgets, plugins, and safety where instrumented.
+
+## Metrics
+
+Metrics include gateway requests, provider calls, cache lookups, rate-limit decisions, routing decisions, budget decisions, provider key decrypt behavior, and token usage recording rules.
+
+## Grafana Dashboards
+
+Grafana provisioning lives under `observability/grafana`. Token usage dashboards are stored in `observability/grafana/dashboards`.
+
+## Alerts
+
+Prometheus alert rules live in `observability/prometheus/rules/alerts.yml`. Alertmanager configuration lives in `observability/alertmanager/alertmanager.yml`.
+
+## Otel Integration
+
+Configure OTEL with:
+
+```bash
+OBSERVABILITY_OTEL_EXPORTER=otlphttp
+OBSERVABILITY_OTEL_ENDPOINT=http://localhost:4318
+OBSERVABILITY_SERVICE_NAME=odock-server
+OBSERVABILITY_SAMPLE_RATE=1
+```

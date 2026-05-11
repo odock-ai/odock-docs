@@ -1,0 +1,15 @@
+---
+title: Config Files
+---
+
+# Config Files
+
+Important config files:
+
+- `docker/server.env`: server runtime env.
+- `docker/ui.env`: UI runtime env.
+- `docker/server/plugins.json`: mounted plugin config.
+- `docker/server/logger.yaml`: server logger config.
+- `observability/.env.example`: optional observability env values.
+
+Required server env includes `POSTGRES_DSN`. Provider key encryption requires matching UI public key variables and server private key variables.

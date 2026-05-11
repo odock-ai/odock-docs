@@ -1,0 +1,13 @@
+---
+title: Architecture
+---
+
+# Architecture
+
+The plugin chain is config-driven. Plugins are registered by factory, loaded from `PLUGINS_CONFIG_PATH`, and attached to a phase plan.
+
+Bundled plugins are:
+
+- `audit_log`
+- `pii_mask`
+- `request_transform`

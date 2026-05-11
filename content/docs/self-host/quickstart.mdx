@@ -1,0 +1,19 @@
+---
+title: Quickstart
+---
+
+# Quickstart
+
+Start the core stack:
+
+```bash
+docker compose up -d postgres redis ui-migrate ui server traefik
+```
+
+Start with observability:
+
+```bash
+docker compose --profile observability up -d
+```
+
+Default compose hostnames are `odock.home.arpa`, `api.odock.home.arpa`, and `grafana.odock.home.arpa` through Traefik labels.

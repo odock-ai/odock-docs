@@ -1,0 +1,75 @@
+---
+title: Users
+---
+
+# Users
+
+Users log into the UI, receive roles, join organisations, belong to teams, and can own user-scoped virtual API keys.
+
+## User types
+
+The UI schema defines four roles: `SUPER_ADMIN`, `ORG_ADMIN`, `MANAGER`, and `USER`. This section focuses on the organisation-facing roles.
+
+### Organisation Admin
+
+Organisation admins manage the full organisation: users, teams, providers, provider keys, models, model access, MCP servers, MCP access, budgets, quotas, API keys, routing, usage, invitations, and settings.
+
+### Organisation Manager
+
+Managers have team-scoped control. They can read organisation resources, manage assigned teams, create and manage team keys, assign models to teams they manage, and view team usage.
+
+### Simple User
+
+Simple users can read allowed organisation resources, manage their own profile, see accessible teams and models, and manage personal or team-related API key workflows where RBAC allows it.
+
+## RBAC
+
+RBAC is enforced in the UI API routes. `SUPER_ADMIN` can use `/admin/*` resources. Organisation users use `/{organisationId}/*` and `/api/organisations/{organisationId}/*`. The authorisation layer checks role, action, resource, organisation match, team membership, managed teams, and self ownership.
+
+## User Enrollment
+
+Users join through invitations or direct creation. Status values are `ACTIVE`, `PENDING`, and `REVOKED`.
+
+### User Invitation
+
+Organisation invitations support joining an existing organisation and creating a new organisation. Invitations store email, role, token hash, status, expiry, invited-by user, and accepted-by user.
+
+#### Accept invitation
+
+The invite link opens `/invite/{token}`. The user must authenticate or register, then complete the invitation. On success, the invitation is marked accepted and the user is attached to the organisation.
+
+#### Revoke invitation
+
+Revoking prevents future acceptance and records the revoked state. Use it when an invite was sent to the wrong person or should no longer grant access.
+
+#### Resend invitation
+
+Resending creates a fresh valid invite flow for the same target user when the previous email was missed or expired.
+
+### Profile Creation
+
+Profile creation happens through registration and invitation completion. The user profile carries identity fields, role, status, organisation, sessions, team memberships, and owned API keys.
+
+## User interface
+
+The user detail screen gives admins and allowed managers one place to inspect profile, teams, API keys, usage records, and budget or quota relationships.
+
+### Edits
+
+Use edits for profile fields, role changes, status changes, and organisation assignment where RBAC allows it.
+
+### Teams
+
+Teams connect users to team-scoped access. Manager permissions depend on managed team membership.
+
+### API Keys
+
+User-scoped API keys are virtual gateway keys owned by a user. They can be granted model and MCP access like other API key types.
+
+### Usage Records
+
+Usage records show traffic attributed to the user through virtual API keys. See [Usage Monitoring](/docs/observability/usage-monitoring).
+
+### Budgets & Quotas
+
+User-owned budgets and quotas limit a user's gateway traffic. See [Budgets](/docs/management/budgets) and [Quotas](/docs/management/quotas).

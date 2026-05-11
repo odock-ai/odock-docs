@@ -1,25 +1,83 @@
 ---
-title: Introduction
-description: Welcome to Odock documentation.
+title: Intro
+description: Overview, architecture, installation, and quick start for Odock.
 ---
 
-# Welcome to Odock
+# Intro
 
-Odock is an AI governance layer that sits between client applications and model or MCP providers. It provides a centralized gateway for LLM and MCP access, enabling granular control over usage, budgets, and security.
+Odock is an AI governance platform for LLM and MCP traffic. It gives teams one controlled entry point for model calls, provider credentials, model access, MCP tool access, routing, budgets, quotas, usage records, security checks, plugins, and observability.
 
-### Explore the Documentation
+The system has two main parts:
 
-<Cards>
-  <Card title="What is Odock?" href="/docs/introduction/what-is-odock" description="Learn about the core concepts and architecture of the Odock platform." />
-  <Card title="Docker Quickstart" href="/docs/installation/docker-quickstart" description="Get Odock up and running locally in minutes using Docker Compose." />
-  <Card title="Platform Map" href="/docs/introduction/platform-map" description="Understand how the different components of Odock fit together." />
-  <Card title="Gateway API" href="/docs/gateway/llm-api" description="Reference for the LLM Gateway API endpoints and request formats." />
-</Cards>
+- `odock-server`: the Go gateway that receives runtime traffic and enforces authentication, access, routing, safety, policy, budget, quota, usage, and observability controls.
+- `odock-ui`: the Next.js management UI used to configure organisations, users, teams, providers, models, MCP servers, virtual API keys, budgets, quotas, and usage views.
 
-### Key Features
+For practical gateway examples, see `odock-server/tests/_python`. Those scripts show OpenAI-style calls, Anthropic native calls, Gemini calls, vLLM calls, unified multi-model calls, and MCP validation flows.
 
-- **Unified Gateway:** Access OpenAI, Anthropic, Gemini, and vLLM through a single endpoint.
-- **Governance:** Manage API keys, model access, and MCP server permissions.
-- **Budgets & Quotas:** Enforce spend and usage limits at various scopes.
-- **Security:** Built-in SafetySec engine for prompt injection and data leakage protection.
-- **Observability:** Comprehensive monitoring with Prometheus, Grafana, Loki, and Tempo.
+## Architecture
+
+Odock separates configuration from traffic execution. Users configure governance in the UI; the gateway reads those records from Postgres, caches hot metadata in Redis, and applies the controls on each request.
+
+The LLM request path is:
+
+1. Receive a gateway request.
+2. Apply request ID, logging, metrics, concurrency, and pre-auth rate checks.
+3. Authenticate the virtual API key.
+4. Resolve organisation, team, user, API key, model, provider, and provider key context.
+5. Run policy checks, model access checks, budgets, quotas, SafetySec, and plugins.
+6. Call the selected upstream provider.
+7. Transform the response into the endpoint shape requested by the client.
+8. Record usage, cost, routing attempts, latency, status, and provider usage.
+9. Run post-response SafetySec and plugin hooks.
+
+The MCP request path is similar, but it resolves an MCP server by id or slug, verifies `ApiKeyMcpAccess`, applies MCP tool and semantic rules, proxies to `STREAMABLE_HTTP`, `SSE`, or `STDIO`, and records MCP-specific usage artifacts.
+
+## Install
+
+For local development, run each project from its own directory.
+
+Backend:
+
+```bash
+cd odock-server
+POSTGRES_DSN='postgres://odock:odock@localhost:5432/odock?sslmode=disable' go run ./cmd/gateway
+```
+
+Frontend:
+
+```bash
+cd odock-ui
+yarn install
+npx prisma migrate dev
+yarn dev
+```
+
+The gateway defaults to `0.0.0.0:8080`. Redis defaults to `localhost:6379` and is used for caching, rate limiting, routing policy cache, SafetySec sessions, and related hot-path state.
+
+## Quick Start
+
+1. Create or select an organisation in the UI.
+2. Add a provider, for example OpenAI, Anthropic, Google, vLLM, Azure OpenAI, or Custom.
+3. Add an encrypted provider API key for that provider.
+4. Add one or more models and connect each model to a provider and provider key.
+5. Create a virtual API key scoped to the organisation, team, or user.
+6. Grant the virtual API key access to the models it can use.
+7. Call the gateway with the virtual API key.
+
+Minimal OpenAI SDK example:
+
+```python
+from openai import OpenAI
+
+client = OpenAI(
+    api_key="sk_your_dock_virtual_key",
+    base_url="http://localhost:8080/v1",
+)
+
+response = client.chat.completions.create(
+    model="gpt-4.1-mini",
+    messages=[{"role": "user", "content": "Hello through Odock"}],
+)
+
+print(response.choices[0].message.content)
+```

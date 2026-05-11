@@ -1,0 +1,57 @@
+---
+title: Virtual API Keys
+---
+
+# Virtual API Keys
+
+Virtual API keys are the credentials applications use to call Odock. They are separate from upstream provider API keys.
+
+## Add API Key
+
+Create a key from the API Keys page. Choose the key type and scope, then grant model and MCP access.
+
+### Scope
+
+API key types are:
+
+- `ORGANISATION`: organisation-wide context.
+- `TEAM`: tied to one team.
+- `USER`: tied to one user.
+
+Scope affects RBAC ownership, usage attribution, budgets, quotas, and policy resolution.
+
+### Timing
+
+Set an optional expiry and timezone. Expired or revoked keys should be rotated or replaced.
+
+## Actions
+
+Operational actions include rotating, revoking, and revealing keys.
+
+### Rotate
+
+Rotate a key when it may be exposed, expired, or no longer aligned with a deployment. Update clients after rotation.
+
+### Revoke
+
+Revoking immediately prevents new gateway calls using the key.
+
+### Reveal Api Key
+
+Reveal is intended for initial copy or controlled recovery. Treat virtual API keys as secrets.
+
+## Guardrails Policies
+
+API key policies can include IP allow/block lists and rate-limit settings. Content safety is handled by [Guardrails](/docs/security-and-guardrails/guardrails) and [SafetySec Engine](/docs/security-and-guardrails/safetysec-engine).
+
+## Budgets & Quotas
+
+API key budgets and quotas apply at the most specific runtime scope. See [Budgets](/docs/management/budgets) and [Quotas](/docs/management/quotas).
+
+## Routing
+
+Routing policies are configured on API keys and activated by the organisation routing switch. See [Routing](/docs/management/routing).
+
+## Usage Records
+
+Usage records linked to an API key show requests, status, model, provider, token usage, billing, routing attempts, latency, and MCP artifacts.

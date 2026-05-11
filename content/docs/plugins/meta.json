@@ -1,0 +1,10 @@
+{
+  "title": "Plugins",
+  "pages": [
+    "index",
+    "architecture",
+    "phases-and-lifecycle",
+    "plugin-marketplace",
+    "custom-plugins"
+  ]
+}

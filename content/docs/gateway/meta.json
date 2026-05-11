@@ -1,4 +1,0 @@
-{
-  "title": "Gateway",
-  "pages": ["request-lifecycle", "llm-api", "mcp-gateway", "plugins-and-safety"]
-}

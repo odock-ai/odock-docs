@@ -1,0 +1,14 @@
+---
+title: Phases & lifecycle
+---
+
+# Phases & lifecycle
+
+Plugin phases are:
+
+- `pre_route`: after auth and request decode, before final rate-limit gate.
+- `pre_upstream`: after final gate, before the provider call.
+- `post_upstream`: after provider response, before writing to the client.
+- `post_response`: after response write and usage enqueue.
+
+Sequential plugins short-circuit on abort/error. Parallel plugins run in a bounded pool. Async post-response is supported when enabled.

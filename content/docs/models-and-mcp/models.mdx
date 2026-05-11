@@ -1,0 +1,55 @@
+---
+title: Models
+---
+
+# Models
+
+Models are organisation-scoped records that map the name clients use to the upstream model slug, provider, provider key, type, capabilities, pricing, and policies.
+
+## Model Types
+
+Model types are `chat`, `reasoning`, `image`, `embeddings`, `audio`, `moderation`, `transcription`, and `tts`. Capabilities include `vision`, `reasoning`, and `tool_use`.
+
+## Add Model Manually
+
+Add a model manually when the catalog does not contain it or when you need custom settings.
+
+### Model Informations
+
+Set:
+
+- `name`: the name clients pass to the gateway.
+- `slug`: the upstream provider model id.
+- `type`: the model class used for UI filtering and routing policy matching.
+
+### Model Capabilities
+
+Choose capabilities such as vision, reasoning, and tool use. These are used for discovery and UI display and can guide future policy decisions.
+
+### Model Provider & Provider Key
+
+Select the provider and provider API key. At request time, Odock resolves these fields and injects the upstream base URL, timeout, and decrypted key.
+
+## Add Model from Catalog
+
+The model catalog loads from `NEXT_PUBLIC_MODEL_CATALOG_URL` or `/model-catalog.json`. Selecting catalog entries can batch-create models with provider metadata, capabilities, and pricing.
+
+### Alternative Model
+
+Alternative models are configured through routing candidates. Use them for failover, priority routing, or round-robin. See [Routing](/docs/management/routing).
+
+## Model Pricing
+
+Model pricing is stored on the model as JSON. Usage billing reads pricing to compute cost from provider token usage. Include input, output, cached input discount, reasoning, image, audio, video, and embeddings pricing where applicable.
+
+## Model Guardrails Policies
+
+Model policies can hold rate limits and IP rules. For content safety behavior, use [Guardrails](/docs/security-and-guardrails/guardrails) and [SafetySec Engine](/docs/security-and-guardrails/safetysec-engine).
+
+## Model API key Access
+
+A virtual API key cannot call a model until `ApiKeyModelAccess` grants access to that model. This is the main runtime access-control boundary for LLM traffic.
+
+## Model Usage Records
+
+Model usage records show request count, latency, status, provider, routing, token breakdown, and cost for traffic using that model.
