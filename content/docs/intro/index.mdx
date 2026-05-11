@@ -1,0 +1,16 @@
+---
+title: Intro
+description: Start here for the core Odock concepts, system shape, installation path, and first gateway call.
+---
+
+# Intro
+
+Odock is an AI governance platform for LLM and MCP traffic. It gives teams one controlled entry point for model calls, provider credentials, model access, MCP tool access, routing, budgets, quotas, usage records, security checks, plugins, and observability.
+
+The intro section is the shortest path from orientation to a working local setup:
+
+- [Architecture](./architecture) explains how the gateway, UI, database, cache, providers, MCP servers, policies, plugins, and observability pieces fit together.
+- [Install](./install) shows the local backend and frontend commands needed to run Odock during development.
+- [Quick Start](./quick-start) walks through the first configuration flow and a minimal gateway call with a virtual API key.
+
+For practical gateway examples, see `odock-server/tests/_python`. Those scripts show OpenAI-style calls, Anthropic native calls, Gemini calls, vLLM calls, unified multi-model calls, and MCP validation flows.

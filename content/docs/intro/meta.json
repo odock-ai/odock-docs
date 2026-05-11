@@ -1,0 +1,9 @@
+{
+  "title": "Intro",
+  "pages": [
+    "index",
+    "architecture",
+    "install",
+    "quick-start"
+  ]
+}

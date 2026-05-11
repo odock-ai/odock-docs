@@ -1,0 +1,32 @@
+---
+title: Quick Start
+description: Configure Odock and make a first OpenAI-compatible gateway call.
+---
+
+# Quick Start
+
+1. Create or select an organisation in the UI.
+2. Add a provider, for example OpenAI, Anthropic, Google, vLLM, Azure OpenAI, or Custom.
+3. Add an encrypted provider API key for that provider.
+4. Add one or more models and connect each model to a provider and provider key.
+5. Create a virtual API key scoped to the organisation, team, or user.
+6. Grant the virtual API key access to the models it can use.
+7. Call the gateway with the virtual API key.
+
+Minimal OpenAI SDK example:
+
+```python
+from openai import OpenAI
+
+client = OpenAI(
+    api_key="sk_your_dock_virtual_key",
+    base_url="http://localhost:8080/v1",
+)
+
+response = client.chat.completions.create(
+    model="gpt-4.1-mini",
+    messages=[{"role": "user", "content": "Hello through Odock"}],
+)
+
+print(response.choices[0].message.content)
+```

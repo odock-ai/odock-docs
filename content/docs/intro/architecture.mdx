@@ -1,0 +1,27 @@
+---
+title: Architecture
+description: How Odock separates management configuration from runtime LLM and MCP traffic execution.
+---
+
+# Architecture
+
+Odock separates configuration from traffic execution. Users configure governance in the UI; the gateway reads those records from Postgres, caches hot metadata in Redis, and applies the controls on each request.
+
+The system has two main parts:
+
+- `odock-server`: the Go gateway that receives runtime traffic and enforces authentication, access, routing, safety, policy, budget, quota, usage, and observability controls.
+- `odock-ui`: the Next.js management UI used to configure organisations, users, teams, providers, models, MCP servers, virtual API keys, budgets, quotas, and usage views.
+
+The LLM request path is:
+
+1. Receive a gateway request.
+2. Apply request ID, logging, metrics, concurrency, and pre-auth rate checks.
+3. Authenticate the virtual API key.
+4. Resolve organisation, team, user, API key, model, provider, and provider key context.
+5. Run policy checks, model access checks, budgets, quotas, SafetySec, and plugins.
+6. Call the selected upstream provider.
+7. Transform the response into the endpoint shape requested by the client.
+8. Record usage, cost, routing attempts, latency, status, and provider usage.
+9. Run post-response SafetySec and plugin hooks.
+
+The MCP request path is similar, but it resolves an MCP server by id or slug, verifies `ApiKeyMcpAccess`, applies MCP tool and semantic rules, proxies to `STREAMABLE_HTTP`, `SSE`, or `STDIO`, and records MCP-specific usage artifacts.

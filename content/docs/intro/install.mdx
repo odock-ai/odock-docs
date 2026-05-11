@@ -1,0 +1,26 @@
+---
+title: Install
+description: Run the Odock gateway and management UI locally for development.
+---
+
+# Install
+
+For local development, run each project from its own directory.
+
+Backend:
+
+```bash
+cd odock-server
+POSTGRES_DSN='postgres://odock:odock@localhost:5432/odock?sslmode=disable' go run ./cmd/gateway
+```
+
+Frontend:
+
+```bash
+cd odock-ui
+yarn install
+npx prisma migrate dev
+yarn dev
+```
+
+The gateway defaults to `0.0.0.0:8080`. Redis defaults to `localhost:6379` and is used for caching, rate limiting, routing policy cache, SafetySec sessions, and related hot-path state.
