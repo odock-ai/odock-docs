@@ -1,10 +1,13 @@
 import {
   Activity,
   ArrowRight,
+  Blocks,
   Bot,
-  Gauge,
-  KeyRound,
+  Compass,
+  Route,
   Rocket,
+  Server,
+  Settings2,
   ShieldCheck,
   type LucideIcon,
 } from 'lucide-react';
@@ -17,40 +20,58 @@ const cards: {
   icon: LucideIcon;
 }[] = [
   {
-    title: 'Start with the platform',
-    description: 'Understand how Odock governs LLM and MCP traffic across the gateway, UI, and observability stack.',
-    href: '/docs/introduction/what-is-odock',
+    title: 'Understand Odock',
+    description: 'Learn where the AI governance gateway fits between applications, agents, providers, and MCP servers.',
+    href: '/docs/getting-started',
+    icon: Compass,
+  },
+  {
+    title: 'Make a first call',
+    description: 'Configure Odock and send an OpenAI-compatible gateway request with a virtual API key.',
+    href: '/docs/getting-started/quick-start',
     icon: Rocket,
   },
   {
-    title: 'Run it locally',
-    description: 'Bring up Odock with Docker Compose and get the core services ready for development.',
-    href: '/docs/installation/docker-quickstart',
-    icon: Gauge,
+    title: 'Use the gateway',
+    description: 'Call native provider-compatible endpoints or the unified Odock endpoint for multi-provider routing.',
+    href: '/docs/usage',
+    icon: Route,
   },
   {
-    title: 'Use the LLM gateway',
-    description: 'Send OpenAI-compatible, Anthropic, Gemini, vLLM, and unified chat requests through one governed endpoint.',
-    href: '/docs/gateway/llm-api',
+    title: 'Configure Models & MCP',
+    description: 'Manage providers, provider keys, models, endpoints, MCP servers, grants, pricing, and usage records.',
+    href: '/docs/models-and-mcp',
     icon: Bot,
   },
   {
-    title: 'Control access',
-    description: 'Configure API keys, providers, models, MCP servers, teams, and policy boundaries from the control plane.',
-    href: '/docs/governance/api-keys-and-access',
-    icon: KeyRound,
+    title: 'Manage runtime controls',
+    description: 'Set virtual API keys, routing policies, budgets, quotas, reservations, and usage boundaries.',
+    href: '/docs/management',
+    icon: Settings2,
   },
   {
-    title: 'Set budgets and quotas',
-    description: 'Reserve, settle, and enforce spend or usage limits across organisations, teams, users, and API keys.',
-    href: '/docs/governance/budgets-quotas-usage',
+    title: 'Apply security guardrails',
+    description: 'Layer RBAC, access grants, policies, SafetySec checks, plugin hooks, budgets, quotas, and telemetry.',
+    href: '/docs/security-and-guardrails',
     icon: ShieldCheck,
   },
   {
-    title: 'Operate with visibility',
-    description: 'Track logs, metrics, traces, alerts, dashboards, request identity, usage, latency, and cost.',
-    href: '/docs/observability/operating-the-stack',
+    title: 'Extend with plugins',
+    description: 'Add request and response processing through lifecycle phases, marketplace plugins, or custom plugins.',
+    href: '/docs/plugins',
+    icon: Blocks,
+  },
+  {
+    title: 'Observe production traffic',
+    description: 'Track usage monitoring, logs, traces, metrics, dashboards, alerts, and OpenTelemetry integration.',
+    href: '/docs/observability',
     icon: Activity,
+  },
+  {
+    title: 'Self-host Odock',
+    description: 'Run Postgres, Redis, Traefik, server, UI, migrations, and the optional observability stack with Docker Compose.',
+    href: '/docs/self-host',
+    icon: Server,
   },
 ];
 
@@ -62,25 +83,26 @@ export default function HomePage() {
           <div className="max-w-3xl">
             <p className="mb-3 text-sm font-medium text-fd-muted-foreground">Odock Documentation</p>
             <h1 className="text-4xl font-semibold tracking-tight sm:text-6xl">
-              Build governed AI products faster.
+              Govern LLM and MCP traffic from one gateway.
             </h1>
             <p className="mt-5 max-w-2xl text-base leading-7 text-fd-muted-foreground sm:text-lg">
-              Odock sits between your applications and model or MCP providers, giving teams one
-              place to manage access, safety, budgets, routing, usage, and observability.
+              Odock sits between applications, agents, developer tools, AI providers, and MCP
+              servers so every model call and tool call can be authenticated, routed, checked,
+              recorded, and monitored.
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Link
-                href="/docs"
+                href="/docs/getting-started"
                 className="inline-flex h-10 items-center justify-center rounded-md bg-fd-primary px-5 text-sm font-medium text-fd-primary-foreground transition-colors hover:bg-fd-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fd-ring"
               >
-                Open docs
+                What is Odock?
                 <ArrowRight className="ml-2 size-4" aria-hidden="true" />
               </Link>
               <Link
-                href="/docs/installation/docker-quickstart"
+                href="/docs/getting-started/quick-start"
                 className="inline-flex h-10 items-center justify-center rounded-md border bg-fd-background px-5 text-sm font-medium transition-colors hover:bg-fd-accent hover:text-fd-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fd-ring"
               >
-                Docker quickstart
+                Quick start
               </Link>
             </div>
           </div>
@@ -93,7 +115,8 @@ export default function HomePage() {
             <div>
               <h2 className="text-2xl font-semibold tracking-tight">Choose your path</h2>
               <p className="mt-2 max-w-2xl text-sm leading-6 text-fd-muted-foreground">
-                The most useful starting points for evaluating, integrating, and operating Odock.
+                Start with the core concepts, then move into usage, management, security,
+                plugins, observability, or self-hosting.
               </p>
             </div>
           </div>
