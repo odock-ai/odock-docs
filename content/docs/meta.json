@@ -1,7 +1,8 @@
 {
   "title": "Documentation",
   "pages": [
-    "intro",
+    "index",
+    "getting-started",
     "usage",
     "user-management",
     "models-and-mcp",
