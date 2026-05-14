@@ -28,7 +28,7 @@ const cards: {
   {
     title: 'Make a first call',
     description: 'Configure Odock and send an OpenAI-compatible gateway request with a virtual API key.',
-    href: '/docs/getting-started/quick-start',
+    href: '/docs/getting-started/setup',
     icon: Rocket,
   },
   {
