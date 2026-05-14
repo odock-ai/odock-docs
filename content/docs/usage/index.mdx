@@ -1,9 +1,343 @@
 ---
 title: Usage
 icon: Route
-description: How to call Odock through native provider-compatible endpoints and the unified LLM endpoint.
+description: How to call the Odock gateway, choose endpoint families, authenticate requests, and handle gateway errors.
 ---
+
+import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
 
 # Usage
 
-Odock exposes native provider-compatible endpoints and a unified Odock endpoint. Use native endpoints when you want an existing SDK to keep its original request and response shape. Use the unified endpoint when you want one OpenAI-style gateway surface that can route across several model providers.
+Odock is a runtime gateway for LLM and MCP traffic. Applications send requests to Odock with a virtual API key. Odock authenticates that key, checks model or MCP access, resolves the configured upstream provider, injects the encrypted provider credential, applies routing, budgets, quotas, rate limits, SafetySec, plugins, observability, and usage recording, then returns the response in the endpoint shape the client selected.
+
+Use the gateway in one of two ways:
+
+- **Native provider endpoints** keep the request and response shape of a provider family. The examples below cover the currently available or compatible provider shapes, such as OpenAI, Anthropic, Gemini, and vLLM.
+- **Unified endpoint** uses Odock's provider-neutral `/v1/llm/chat` surface. It accepts an OpenAI-compatible chat request shape and can route across configured providers when routing is enabled.
+
+The [Quick Start](/docs/getting-started/quick-start) shows the shortest OpenAI-compatible migration. This page is the detailed reference for gateway usage.
+
+## Base URL
+
+| Deployment | Base URL |
+| ---------- | -------- |
+| Odock Cloud | `https://api.odock.ai/v1` |
+| Local self-hosted gateway | `http://localhost:8080/v1` |
+| Custom self-hosted domain | your own `/v1` gateway URL, for example `https://ai-gateway.example.com/v1` |
+
+Some native clients expect the base URL without `/v1`:
+
+| Client family | Recommended base URL |
+| ------------- | -------------------- |
+| OpenAI SDK | `https://api.odock.ai/v1` |
+| Anthropic SDK | `https://api.odock.ai` |
+| Gemini HTTP clients | `https://api.odock.ai` |
+| vLLM HTTP clients | `https://api.odock.ai` plus `/v1/vllm/...` paths |
+
+## Authentication
+
+Use a virtual API key created in Odock, not an upstream provider key.
+
+Odock accepts these credential forms:
+
+| Credential form | Typical use |
+| --------------- | ----------- |
+| `Authorization: Bearer sk_your_dock_virtual_key` | Recommended for OpenAI, Anthropic, vLLM, and direct HTTP callers. |
+| `X-API-Key: sk_your_dock_virtual_key` | Generic API-key callers. |
+| `x-goog-api-key: sk_your_dock_virtual_key` | Gemini-compatible clients. |
+| `?key=sk_your_dock_virtual_key` | Gemini-compatible query parameter support. Prefer headers for server-side applications. |
+
+The virtual key must be active, unexpired, and explicitly granted access to the requested model or MCP server.
+
+## Runtime Resolution
+
+For LLM endpoints, the gateway resolves the requested `model` against the organisation model table. The configured model record supplies:
+
+- the client-facing model name
+- the upstream provider model slug
+- the provider type
+- the provider base URL
+- the provider timeout
+- the encrypted provider API key
+- pricing, capabilities, policies, budgets, quotas, and routing metadata
+
+The model name in the request is the Odock model name. Odock rewrites it to the upstream slug before calling the provider when the configured slug differs.
+
+For native endpoints, the route pins the provider family. For example, `/v1/chat/completions` only allows OpenAI-backed models. If the model record resolves to another provider family, the gateway rejects the request with `provider_not_allowed`.
+
+For `/v1/llm/chat`, the endpoint is provider-neutral. It accepts OpenAI-compatible chat fields such as `model`, `messages`, `temperature`, `max_tokens`, `tools`, `tool_choice`, `response_format`, and `stream`. Streaming responses are emitted as OpenAI-compatible `chat.completion.chunk` SSE events. Unary responses use Odock's normalized response object with fields such as `provider`, `model`, `content`, `stop_reason`, `content_blocks`, `tool_calls`, `input_tokens`, and `output_tokens`.
+
+## Choose an Endpoint
+
+The provider tabs below document the endpoint shapes currently available or compatible in the gateway. They are examples of supported provider families, not a permanent limit on future providers.
+
+<Tabs items={["Unified", "OpenAI", "Anthropic", "Gemini", "vLLM", "MCP"]}>
+<Tab>
+
+| Method | Endpoint | Request shape | Response shape | Streaming |
+| ------ | -------- | ------------- | -------------- | --------- |
+| `POST` | `/v1/llm/chat` | OpenAI-compatible chat request fields plus optional `provider` | Odock normalized JSON for unary; OpenAI-compatible SSE chunks for streaming | Yes |
+
+Use `/v1/llm/chat` when you want one chat endpoint that can call models configured in Odock across available or compatible providers. It is the main endpoint for provider-neutral routing and multi-model failover.
+
+</Tab>
+<Tab>
+
+| Method | Endpoint | Request shape | Response shape | Streaming |
+| ------ | -------- | ------------- | -------------- | --------- |
+| `POST` | `/v1/chat/completions` | OpenAI Chat Completions | OpenAI Chat Completions | Yes |
+| `POST` | `/v1/responses` | OpenAI Responses | OpenAI Responses | Yes |
+| `POST` | `/v1/embeddings` | OpenAI Embeddings | OpenAI Embeddings | No |
+| `POST` | `/v1/images/generations` | OpenAI Images | OpenAI Images | No |
+| `POST` | `/v1/images/edits` | OpenAI Images multipart edit | OpenAI Images | No |
+| `POST` | `/v1/images/variations` | OpenAI Images multipart variation | OpenAI Images | No |
+
+Use these endpoints when your application already uses an OpenAI-compatible SDK or HTTP client.
+
+</Tab>
+<Tab>
+
+| Method | Endpoint | Request shape | Response shape | Streaming |
+| ------ | -------- | ------------- | -------------- | --------- |
+| `POST` | `/v1/messages` | Anthropic Messages | Anthropic Messages | Yes |
+
+Use this endpoint with Anthropic SDKs or clients that expect Anthropic's native `messages` API.
+
+</Tab>
+<Tab>
+
+| Method | Endpoint | Request shape | Response shape | Streaming |
+| ------ | -------- | ------------- | -------------- | --------- |
+| `POST` | `/v1beta/models/{model}:generateContent` | Gemini `generateContent` | Gemini `generateContent` | No |
+| `POST` | `/v1beta/models/{model}:streamGenerateContent` | Gemini `streamGenerateContent` | Gemini SSE | Yes |
+
+Use these endpoints for Gemini-compatible HTTP clients. The `{model}` path segment is still the Odock model name, not necessarily the upstream Gemini slug.
+
+</Tab>
+<Tab>
+
+| Method | Endpoint | Request shape | Response shape | Streaming |
+| ------ | -------- | ------------- | -------------- | --------- |
+| `GET` | `/v1/vllm/models` | vLLM models | vLLM models | No |
+| `POST` | `/v1/vllm/chat/completions` | vLLM chat completions | vLLM raw response | Yes |
+| `POST` | `/v1/vllm/completions` | vLLM completions | vLLM raw response | Yes |
+| `POST` | `/v1/vllm/responses` | vLLM responses | vLLM raw response | Yes |
+| `POST` | `/v1/vllm/embeddings` | vLLM embeddings | vLLM raw response | No |
+| `POST` | `/v1/vllm/audio/transcriptions` | vLLM audio transcriptions | vLLM raw response | No |
+| `POST` | `/v1/vllm/audio/translations` | vLLM audio translations | vLLM raw response | No |
+| `POST` | `/v1/vllm/tokenize` | vLLM tokenize | vLLM raw response | No |
+| `POST` | `/v1/vllm/detokenize` | vLLM detokenize | vLLM raw response | No |
+| `POST` | `/v1/vllm/pooling` | vLLM pooling | vLLM raw response | No |
+| `POST` | `/v1/vllm/classify` | vLLM classify | vLLM raw response | No |
+| `POST` | `/v1/vllm/score` | vLLM score | vLLM raw response | No |
+| `POST` | `/v1/vllm/rerank` | vLLM rerank | vLLM raw response | No |
+
+Use these endpoints when the upstream model is configured with a vLLM provider and the client expects vLLM-compatible payloads.
+
+</Tab>
+<Tab>
+
+| Method | Endpoint | Request shape | Response shape | Streaming |
+| ------ | -------- | ------------- | -------------- | --------- |
+| `GET` or `POST` | `/v1/mcp/{slug}` | MCP transport payload | Proxied MCP response | Depends on server transport |
+| `GET` or `POST` | `/v1/mcp/{id}` | MCP transport payload | Proxied MCP response | Depends on server transport |
+| `GET` or `POST` | `/v1/mcp/{slug}/{path}` | MCP transport payload with additional path | Proxied MCP response | Depends on server transport |
+
+MCP calls resolve an MCP server by slug or id, verify `ApiKeyMcpAccess`, apply MCP guardrails and budgets, then proxy to the configured `STREAMABLE_HTTP`, `SSE`, or `STDIO` transport.
+
+</Tab>
+</Tabs>
+
+## Calling Methods
+
+Use the method that fits your application. Each example uses the same virtual API key and the same configured Odock model.
+
+<Tabs items={["OpenAI SDK", "curl", "Python httpx"]}>
+<Tab>
+
+```python
+import os
+from openai import OpenAI
+
+client = OpenAI(
+    api_key=os.environ["ODOCK_API_KEY"],
+    base_url=os.environ.get("ODOCK_BASE_URL", "https://api.odock.ai/v1"),
+)
+
+response = client.chat.completions.create(
+    model=os.environ.get("ODOCK_MODEL", "gpt-4.1-mini"),
+    messages=[{"role": "user", "content": "Explain Odock in one sentence."}],
+    temperature=0.2,
+    max_tokens=120,
+)
+
+print(response.choices[0].message.content)
+```
+
+</Tab>
+<Tab>
+
+```bash
+curl "$ODOCK_BASE_URL/chat/completions" \
+  -H "Authorization: Bearer $ODOCK_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "'"$ODOCK_MODEL"'",
+    "messages": [
+      {"role": "user", "content": "Explain Odock in one sentence."}
+    ],
+    "temperature": 0.2,
+    "max_tokens": 120
+  }'
+```
+
+</Tab>
+<Tab>
+
+```python
+import os
+import httpx
+
+base_url = os.environ.get("ODOCK_BASE_URL", "https://api.odock.ai/v1")
+api_key = os.environ["ODOCK_API_KEY"]
+model = os.environ.get("ODOCK_MODEL", "gpt-4.1-mini")
+
+response = httpx.post(
+    f"{base_url}/chat/completions",
+    headers={
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json",
+    },
+    json={
+        "model": model,
+        "messages": [
+            {"role": "user", "content": "Explain Odock in one sentence."}
+        ],
+        "temperature": 0.2,
+        "max_tokens": 120,
+    },
+    timeout=60.0,
+)
+response.raise_for_status()
+print(response.json()["choices"][0]["message"]["content"])
+```
+
+</Tab>
+</Tabs>
+
+## Streaming
+
+Streaming remains available on chat-style OpenAI, Anthropic, Gemini, vLLM, and unified endpoints. Use streaming when your client can consume server-sent events.
+
+<Tabs items={["OpenAI SDK", "curl", "Unified httpx"]}>
+<Tab>
+
+```python
+import os
+from openai import OpenAI
+
+client = OpenAI(
+    api_key=os.environ["ODOCK_API_KEY"],
+    base_url=os.environ.get("ODOCK_BASE_URL", "https://api.odock.ai/v1"),
+)
+
+stream = client.chat.completions.create(
+    model=os.environ.get("ODOCK_MODEL", "gpt-4.1-mini"),
+    messages=[{"role": "user", "content": "Give three gateway benefits."}],
+    stream=True,
+    max_tokens=180,
+    extra_body={"include_usage": True},
+)
+
+for chunk in stream:
+    delta = chunk.choices[0].delta
+    if delta.content:
+        print(delta.content, end="", flush=True)
+
+print()
+```
+
+</Tab>
+<Tab>
+
+```bash
+curl -N "$ODOCK_BASE_URL/chat/completions" \
+  -H "Authorization: Bearer $ODOCK_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "'"$ODOCK_MODEL"'",
+    "messages": [
+      {"role": "user", "content": "Give three gateway benefits."}
+    ],
+    "stream": true,
+    "include_usage": true,
+    "max_tokens": 180
+  }'
+```
+
+</Tab>
+<Tab>
+
+```python
+import json
+import os
+import httpx
+
+base_url = os.environ.get("ODOCK_BASE_URL", "https://api.odock.ai/v1")
+api_key = os.environ["ODOCK_API_KEY"]
+model = os.environ.get("ODOCK_MODEL", "claude-sonnet-4-5")
+
+payload = {
+    "model": model,
+    "messages": [{"role": "user", "content": "Give three gateway benefits."}],
+    "stream": True,
+    "include_usage": True,
+    "max_tokens": 180,
+}
+
+with httpx.stream(
+    "POST",
+    f"{base_url}/llm/chat",
+    headers={
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json",
+    },
+    json=payload,
+    timeout=60.0,
+) as response:
+    response.raise_for_status()
+    for line in response.iter_lines():
+        if not line or not line.startswith("data: "):
+            continue
+        data = line[6:].strip()
+        if data == "[DONE]":
+            break
+        chunk = json.loads(data)
+        delta = chunk["choices"][0].get("delta", {})
+        if delta.get("content"):
+            print(delta["content"], end="", flush=True)
+
+print()
+```
+
+</Tab>
+</Tabs>
+
+## Errors
+
+Gateway-controlled errors usually return an `error.code` and `error.message` JSON body. Rate-limit responses may also include scope, limit, and retry metadata. Native provider endpoints can return provider-native upstream errors after Odock accepts the request.
+
+See [Gateway Errors](/docs/usage/errors) for the complete error format, LLM error table, and MCP error table.
+
+## Operational Checklist
+
+Before sending production traffic through Odock:
+
+1. Create the provider and provider key.
+2. Create models with the client-facing `name` and upstream `slug`.
+3. Grant the virtual API key access to each model it can call.
+4. Configure budgets, quotas, rate limits, and routing policies where needed.
+5. Run one unary call and one streaming call.
+6. Confirm the request appears in usage and observability views with provider, model, status, latency, tokens, cost, and routing attempts.
+
+For provider-specific examples, continue with [Native Models call](/docs/usage/native-models-call). For the provider-neutral chat endpoint, continue with [Unified Multi Model Endpoint call](/docs/usage/unified-multi-model-endpoint-call).

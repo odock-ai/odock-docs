@@ -1,15 +1,311 @@
 ---
 title: Native Models call
 icon: Cpu
+description: Call Odock through currently available or compatible provider endpoint shapes.
 ---
+
+import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
 
 # Native Models call
 
-Native calls pin the endpoint to a provider family:
+Native endpoints keep the provider family's API shape. Use them when you already have a provider-compatible client and want Odock to sit between that client and the upstream provider.
 
-- OpenAI-compatible: `/v1/chat/completions`, `/v1/responses`, `/v1/embeddings`, `/v1/images/generations`, `/v1/images/edits`, `/v1/images/variations`
-- Anthropic-compatible: `/v1/messages`
-- Gemini-compatible: `/v1beta/models/{model}:generateContent`
-- vLLM-compatible: `/v1/vllm/*`
+The native route determines the provider family. The `model` still names an Odock model configured in your organisation. At runtime, Odock resolves that model to its upstream slug, provider base URL, timeout, and encrypted provider key.
 
-The important operational rule is that the model name must match a model configured in the organisation, and the virtual API key must have access to that model. The gateway then rewrites the upstream model slug, provider base URL, timeout, and provider credential from the model configuration.
+Native endpoint rules:
+
+- The request uses an Odock virtual API key.
+- The requested model must exist in the organisation.
+- The virtual API key must have access to the model.
+- The model's provider family must match the native endpoint.
+- Provider-specific payloads are preserved where the endpoint supports passthrough.
+
+## Endpoints by Provider
+
+The tabs below show currently available or compatible provider endpoint shapes. They are examples of supported native integrations and can grow as new providers are added.
+
+<Tabs items={["OpenAI", "Anthropic", "Gemini", "vLLM"]}>
+<Tab>
+
+| Method | Endpoint | Use for | SDK base URL | Streaming |
+| ------ | -------- | ------- | ------------ | --------- |
+| `POST` | `/v1/chat/completions` | Chat Completions | `https://api.odock.ai/v1` | Yes |
+| `POST` | `/v1/responses` | Responses API | `https://api.odock.ai/v1` | Yes |
+| `POST` | `/v1/embeddings` | Embeddings | `https://api.odock.ai/v1` | No |
+| `POST` | `/v1/images/generations` | Image generation | `https://api.odock.ai/v1` | No |
+| `POST` | `/v1/images/edits` | Image editing multipart requests | `https://api.odock.ai/v1` | No |
+| `POST` | `/v1/images/variations` | Image variation multipart requests | `https://api.odock.ai/v1` | No |
+
+OpenAI-compatible endpoints are the best fit when you want the smallest migration. Set the OpenAI SDK `base_url` to Odock and replace the upstream provider key with the Odock virtual API key.
+
+</Tab>
+<Tab>
+
+| Method | Endpoint | Use for | SDK base URL | Streaming |
+| ------ | -------- | ------- | ------------ | --------- |
+| `POST` | `/v1/messages` | Anthropic Messages | `https://api.odock.ai` | Yes |
+
+The Anthropic SDK appends `/v1/messages` itself, so its base URL should not include `/v1`.
+
+</Tab>
+<Tab>
+
+| Method | Endpoint | Use for | Client base URL | Streaming |
+| ------ | -------- | ------- | --------------- | --------- |
+| `POST` | `/v1beta/models/{model}:generateContent` | Gemini content generation | `https://api.odock.ai` | No |
+| `POST` | `/v1beta/models/{model}:streamGenerateContent` | Gemini streaming generation | `https://api.odock.ai` | Yes |
+
+Gemini-compatible callers can authenticate with `Authorization: Bearer ...`, `x-goog-api-key`, or the `?key=` query parameter. Headers are preferred for server-side applications.
+
+</Tab>
+<Tab>
+
+| Method | Endpoint | Use for | Client base URL | Streaming |
+| ------ | -------- | ------- | --------------- | --------- |
+| `GET` | `/v1/vllm/models` | vLLM model listing | `https://api.odock.ai` | No |
+| `POST` | `/v1/vllm/chat/completions` | vLLM chat completions | `https://api.odock.ai` | Yes |
+| `POST` | `/v1/vllm/completions` | vLLM completions | `https://api.odock.ai` | Yes |
+| `POST` | `/v1/vllm/responses` | vLLM responses | `https://api.odock.ai` | Yes |
+| `POST` | `/v1/vllm/embeddings` | vLLM embeddings | `https://api.odock.ai` | No |
+| `POST` | `/v1/vllm/audio/transcriptions` | vLLM audio transcriptions | `https://api.odock.ai` | No |
+| `POST` | `/v1/vllm/audio/translations` | vLLM audio translations | `https://api.odock.ai` | No |
+| `POST` | `/v1/vllm/tokenize` | vLLM tokenize | `https://api.odock.ai` | No |
+| `POST` | `/v1/vllm/detokenize` | vLLM detokenize | `https://api.odock.ai` | No |
+| `POST` | `/v1/vllm/pooling` | vLLM pooling | `https://api.odock.ai` | No |
+| `POST` | `/v1/vllm/classify` | vLLM classify | `https://api.odock.ai` | No |
+| `POST` | `/v1/vllm/score` | vLLM score | `https://api.odock.ai` | No |
+| `POST` | `/v1/vllm/rerank` | vLLM rerank | `https://api.odock.ai` | No |
+
+vLLM endpoints forward raw vLLM-compatible payloads after Odock resolves the model and governance context.
+
+</Tab>
+</Tabs>
+
+## OpenAI-Compatible Calls
+
+<Tabs items={["Chat SDK", "Chat curl", "Responses SDK", "Embeddings SDK"]}>
+<Tab>
+
+```python
+import os
+from openai import OpenAI
+
+client = OpenAI(
+    api_key=os.environ["ODOCK_API_KEY"],
+    base_url=os.environ.get("ODOCK_BASE_URL", "https://api.odock.ai/v1"),
+)
+
+response = client.chat.completions.create(
+    model=os.environ.get("ODOCK_MODEL", "gpt-4.1-mini"),
+    messages=[{"role": "user", "content": "Write a short status update."}],
+    temperature=0.3,
+    max_tokens=120,
+)
+
+print(response.choices[0].message.content)
+```
+
+</Tab>
+<Tab>
+
+```bash
+curl "$ODOCK_BASE_URL/chat/completions" \
+  -H "Authorization: Bearer $ODOCK_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "'"$ODOCK_MODEL"'",
+    "messages": [
+      {"role": "user", "content": "Write a short status update."}
+    ],
+    "temperature": 0.3,
+    "max_tokens": 120
+  }'
+```
+
+</Tab>
+<Tab>
+
+```python
+import os
+from openai import OpenAI
+
+client = OpenAI(
+    api_key=os.environ["ODOCK_API_KEY"],
+    base_url=os.environ.get("ODOCK_BASE_URL", "https://api.odock.ai/v1"),
+)
+
+response = client.responses.create(
+    model=os.environ.get("ODOCK_MODEL", "gpt-4.1-mini"),
+    input=[{"role": "user", "content": "Summarize the gateway flow."}],
+    temperature=0.3,
+    max_output_tokens=160,
+)
+
+print(response.output_text)
+```
+
+</Tab>
+<Tab>
+
+```python
+import os
+from openai import OpenAI
+
+client = OpenAI(
+    api_key=os.environ["ODOCK_API_KEY"],
+    base_url=os.environ.get("ODOCK_BASE_URL", "https://api.odock.ai/v1"),
+)
+
+response = client.embeddings.create(
+    model=os.environ.get("ODOCK_EMBEDDING_MODEL", "text-embedding-3-small"),
+    input="Odock records usage for model traffic.",
+    encoding_format="float",
+)
+
+print(len(response.data[0].embedding))
+```
+
+</Tab>
+</Tabs>
+
+## Anthropic-Compatible Calls
+
+<Tabs items={["Anthropic SDK", "curl"]}>
+<Tab>
+
+```python
+import os
+from anthropic import Anthropic
+
+client = Anthropic(
+    api_key=os.environ["ODOCK_API_KEY"],
+    base_url=os.environ.get("ODOCK_GATEWAY_URL", "https://api.odock.ai"),
+)
+
+message = client.messages.create(
+    model=os.environ.get("ODOCK_MODEL", "claude-sonnet-4-5"),
+    max_tokens=160,
+    temperature=0.3,
+    messages=[
+        {"role": "user", "content": "Explain model access in Odock."}
+    ],
+)
+
+print(message.content[0].text)
+```
+
+</Tab>
+<Tab>
+
+```bash
+curl "${ODOCK_GATEWAY_URL:-https://api.odock.ai}/v1/messages" \
+  -H "Authorization: Bearer $ODOCK_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "'"${ODOCK_MODEL:-claude-sonnet-4-5}"'",
+    "max_tokens": 160,
+    "temperature": 0.3,
+    "messages": [
+      {"role": "user", "content": "Explain model access in Odock."}
+    ]
+  }'
+```
+
+</Tab>
+</Tabs>
+
+## Gemini-Compatible Calls
+
+<Tabs items={["generateContent", "streamGenerateContent"]}>
+<Tab>
+
+```bash
+curl "${ODOCK_GATEWAY_URL:-https://api.odock.ai}/v1beta/models/${ODOCK_MODEL:-gemini-2.5-flash}:generateContent" \
+  -H "Authorization: Bearer $ODOCK_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "contents": [
+      {
+        "role": "user",
+        "parts": [{"text": "Explain provider credentials in Odock."}]
+      }
+    ],
+    "generationConfig": {
+      "temperature": 0.3,
+      "maxOutputTokens": 160
+    }
+  }'
+```
+
+</Tab>
+<Tab>
+
+```bash
+curl -N "${ODOCK_GATEWAY_URL:-https://api.odock.ai}/v1beta/models/${ODOCK_MODEL:-gemini-2.5-flash}:streamGenerateContent" \
+  -H "Authorization: Bearer $ODOCK_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "contents": [
+      {
+        "role": "user",
+        "parts": [{"text": "Give two examples of gateway routing."}]
+      }
+    ],
+    "generationConfig": {
+      "temperature": 0.3,
+      "maxOutputTokens": 160
+    }
+  }'
+```
+
+</Tab>
+</Tabs>
+
+## vLLM-Compatible Calls
+
+<Tabs items={["Chat", "Models", "Embeddings"]}>
+<Tab>
+
+```bash
+curl "${ODOCK_GATEWAY_URL:-https://api.odock.ai}/v1/vllm/chat/completions" \
+  -H "Authorization: Bearer $ODOCK_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "'"${ODOCK_MODEL:-llama-3.1-8b-instruct}"'",
+    "messages": [
+      {"role": "user", "content": "Explain quota enforcement."}
+    ],
+    "max_tokens": 160,
+    "stream": false
+  }'
+```
+
+</Tab>
+<Tab>
+
+```bash
+curl "${ODOCK_GATEWAY_URL:-https://api.odock.ai}/v1/vllm/models" \
+  -H "Authorization: Bearer $ODOCK_API_KEY"
+```
+
+</Tab>
+<Tab>
+
+```bash
+curl "${ODOCK_GATEWAY_URL:-https://api.odock.ai}/v1/vllm/embeddings" \
+  -H "Authorization: Bearer $ODOCK_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "'"${ODOCK_EMBEDDING_MODEL:-bge-small-en}"'",
+    "input": "Embeddings traffic is governed by Odock."
+  }'
+```
+
+</Tab>
+</Tabs>
+
+## Native Error Behavior
+
+Native endpoints can return gateway-controlled JSON errors, plain-text transport errors, or provider-native upstream errors after Odock accepts the request. The most common native-specific case is `400 provider_not_allowed`, which means the model is configured for a different provider family than the endpoint.
+
+For the full format and status-code tables, see [Gateway Errors](/docs/usage/errors).

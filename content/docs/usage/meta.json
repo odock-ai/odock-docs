@@ -4,6 +4,7 @@
   "pages": [
     "index",
     "native-models-call",
-    "unified-multi-model-endpoint-call"
+    "unified-multi-model-endpoint-call",
+    "errors"
   ]
 }
