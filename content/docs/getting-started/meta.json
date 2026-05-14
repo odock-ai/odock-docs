@@ -4,7 +4,7 @@
   "pages": [
     "index",
     "architecture",
-    "install",
+    "setup",
     "quick-start"
   ]
 }
