@@ -216,7 +216,93 @@ curl "${ODOCK_GATEWAY_URL:-https://api.odock.ai}/v1/messages" \
 
 ## Gemini-Compatible Calls
 
-<Tabs items={["generateContent", "streamGenerateContent"]}>
+<Tabs items={["Google GenAI SDK", "Python httpx", "generateContent curl", "streamGenerateContent curl"]}>
+<Tab>
+
+```python
+import os
+
+from google import genai
+from google.genai import types
+
+client = genai.Client(
+    api_key=os.environ["ODOCK_API_KEY"],
+    http_options=types.HttpOptions(
+        # The Google GenAI SDK appends /v1beta, so use the gateway root here.
+        base_url=os.environ.get("ODOCK_GATEWAY_URL", "https://api.odock.ai"),
+        api_version="v1beta",
+    ),
+)
+
+response = client.models.generate_content(
+    model=os.environ.get("ODOCK_MODEL", "gemini-2.5-flash"),
+    contents="Hello from Gemini through my gateway",
+)
+
+print(response.text)
+```
+
+</Tab>
+<Tab>
+
+```python
+import json
+import os
+from typing import Any
+
+import httpx
+
+
+BASE_URL = os.getenv("ODOCK_GATEWAY_URL", "https://api.odock.ai").rstrip("/")
+API_KEY = os.environ["ODOCK_API_KEY"]
+MODEL = os.getenv("ODOCK_MODEL", "gemini-2.5-flash")
+PROMPT = os.getenv("ODOCK_PROMPT", "Explain provider credentials in Odock.")
+
+
+def gemini_payload(prompt: str) -> dict[str, Any]:
+    return {
+        "contents": [
+            {
+                "role": "user",
+                "parts": [{"text": prompt}],
+            }
+        ],
+        "generationConfig": {
+            "temperature": 0.3,
+            "maxOutputTokens": 160,
+        },
+    }
+
+
+headers = {
+    "Authorization": f"Bearer {API_KEY}",
+    "Content-Type": "application/json",
+}
+
+url = f"{BASE_URL}/v1beta/models/{MODEL}:generateContent"
+
+with httpx.Client(timeout=30.0) as client:
+    response = client.post(url, headers=headers, json=gemini_payload(PROMPT))
+
+response.raise_for_status()
+data = response.json()
+
+text_parts: list[str] = []
+for candidate in data.get("candidates", []):
+    content = candidate.get("content", {})
+    for part in content.get("parts", []):
+        text = part.get("text")
+        if text:
+            text_parts.append(text)
+
+print("".join(text_parts).strip() or "<no text>")
+
+usage = data.get("usageMetadata")
+if usage:
+    print("usage:", json.dumps(usage))
+```
+
+</Tab>
 <Tab>
 
 ```bash
