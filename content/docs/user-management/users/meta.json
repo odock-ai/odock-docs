@@ -1,0 +1,17 @@
+{
+  "title": "Users",
+  "pages": [
+    "index",
+    "invite-user",
+    "accept-invitation",
+    "resend-invitation",
+    "revoke-invitation",
+    "review-users",
+    "approve-decline-pending-user",
+    "add-new-user",
+    "edit-user",
+    "add-user-to-team",
+    "review-user-api-keys",
+    "review-user-usage-budgets-quotas"
+  ]
+}
