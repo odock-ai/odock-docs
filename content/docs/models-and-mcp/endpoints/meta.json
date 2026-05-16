@@ -1,0 +1,10 @@
+{
+  "title": "Endpoints",
+  "icon": "Waypoints",
+  "pages": [
+    "index",
+    "test-model-from-playground",
+    "test-application-request",
+    "test-mcp-call"
+  ]
+}

@@ -1,0 +1,66 @@
+---
+title: Add an MCP server manually
+description: Create a custom MCP server record from endpoint or STDIO settings.
+---
+
+# Add an MCP server manually
+
+Use manual creation when the server is not in the trusted catalog or when you need custom settings.
+
+<Steps>
+
+<Step>
+Open **MCP Servers**.
+</Step>
+
+<Step>
+Click the create action.
+</Step>
+
+<Step>
+In **Identity**, enter Name, Slug, and Description.
+</Step>
+
+<Step>
+In **Transport**, choose `STREAMABLE_HTTP`, `SSE`, or `STDIO`.
+</Step>
+
+<Step>
+For HTTP or SSE, enter the endpoint URL.
+</Step>
+
+<Step>
+For STDIO, enter the command, args, and optional environment JSON.
+</Step>
+
+<Step>
+In **Security & Access**, choose the upstream auth type.
+</Step>
+
+<Step>
+Enter auth config JSON if the auth type requires it.
+</Step>
+
+<Step>
+Set **Enabled**.
+</Step>
+
+<Step>
+Set **Public Internet** if the server is publicly reachable.
+</Step>
+
+<Step>
+Optionally choose Team Scope or API Key Scope.
+</Step>
+
+<Step>
+In **Governance**, enter allowed tools, blocked tools, semantic filter JSON, and metadata.
+
+> Screenshot placeholder: Create MCP Server form showing Identity, Transport, Security & Access, and Governance steps.
+</Step>
+
+<Step>
+Create the server.
+</Step>
+
+</Steps>

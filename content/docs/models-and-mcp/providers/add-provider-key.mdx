@@ -1,0 +1,43 @@
+---
+title: Add a provider key
+description: Store an upstream provider credential for Odock to use at runtime.
+---
+
+# Add a provider key
+
+Provider keys are upstream secrets. Odock uses them only when it calls the upstream provider. Applications call Odock with virtual API keys instead.
+
+<Steps>
+
+<Step>
+Open **Providers**.
+</Step>
+
+<Step>
+Click **Configure** on the provider.
+</Step>
+
+<Step>
+In the **Provider Keys** area, click the action to create a provider key.
+</Step>
+
+<Step>
+Enter a key name, such as `Primary`, `Production`, or `Research`.
+</Step>
+
+<Step>
+Paste the upstream provider key.
+</Step>
+
+
+<Step>
+Create the key.
+
+</Step>
+
+</Steps>
+
+![Create the OpenAI provider key](/gifs/setup-add-provider-key.gif)
+
+
+The saved key is encrypted before storage and should not be copied into application code. Applications should use [Virtual API Keys](/docs/management/virtual-api-keys).

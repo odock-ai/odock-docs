@@ -1,0 +1,12 @@
+{
+  "title": "Providers",
+  "icon": "Plug",
+  "pages": [
+    "index",
+    "activate-provider",
+    "edit-provider-details",
+    "add-provider-key",
+    "add-models-from-provider",
+    "update-model-pricing-from-catalog"
+  ]
+}

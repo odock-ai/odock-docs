@@ -1,0 +1,16 @@
+{
+  "title": "Models",
+  "icon": "Cpu",
+  "pages": [
+    "index",
+    "model-pricing",
+    "add-models-from-catalog",
+    "add-variant-model",
+    "add-model-manually",
+    "review-model-detail",
+    "edit-model-pricing",
+    "edit-model-policies",
+    "grant-model-to-api-key",
+    "grant-api-keys-to-model"
+  ]
+}
