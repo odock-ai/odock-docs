@@ -6,6 +6,7 @@
     "model-pricing",
     "add-models-from-catalog",
     "add-variant-model",
+    "call-through-odock",
     "add-model-manually",
     "review-model-detail",
     "edit-model-pricing",

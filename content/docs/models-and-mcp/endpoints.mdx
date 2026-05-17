@@ -1,5 +1,6 @@
 ---
 title: Endpoints
+icon: Waypoints
 description: Understand how applications call configured models and MCP servers through the Odock gateway.
 ---
 
@@ -63,7 +64,6 @@ MCP calls use:
 ```txt
 /v1/mcp/{slug}
 /v1/mcp/{id}
-/v1/mcp/{slug}/{path}
 ```
 
 The slug or id resolves to an MCP server record. Odock authenticates the virtual API key, loads the MCP server, checks access, applies scope and guardrails, proxies to `STREAMABLE_HTTP`, `SSE`, or `STDIO`, and records MCP usage.
