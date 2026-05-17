@@ -11,6 +11,7 @@
     "security",
     "add-from-trusted-catalog",
     "add-manually",
+    "call-through-odock",
     "review-transport",
     "review-security-access",
     "edit-governance",
