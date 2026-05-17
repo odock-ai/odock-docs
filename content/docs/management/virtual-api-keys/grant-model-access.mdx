@@ -1,0 +1,52 @@
+---
+title: Grant model access
+icon: ListChecks
+description: Allow a virtual API key to call configured models.
+---
+
+# Grant model access
+
+Use this workflow when you are setting up one API key and want to choose which models it can call.
+
+<Steps>
+
+<Step>
+Open **API Keys**.
+</Step>
+
+<Step>
+Open the key used by your application.
+</Step>
+
+<Step>
+Scroll to **Model Access**.
+</Step>
+
+<Step>
+Use the model access action to add models.
+</Step>
+
+<Step>
+Search by model name, slug, type, provider, or id.
+</Step>
+
+<Step>
+Select one or more models.
+</Step>
+
+<Step>
+Confirm the grant.
+</Step>
+
+<Step>
+Verify the selected models appear in the Model Access table.
+</Step>
+
+</Steps>
+
+![Add a model access to apikey](/gifs/setup-add-apikey-models-access.gif)
+
+
+## Verify With A Call
+
+Use the Odock model name in your request. If the model is not granted, the gateway should reject the request before the provider call.

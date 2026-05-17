@@ -1,0 +1,33 @@
+---
+title: Amounts and thresholds
+icon: BadgeDollarSign
+description: Understand budget values, nanos USD, currencies, and threshold percentages.
+---
+
+# Amounts and thresholds
+
+In the UI, enter budget amount as a normal USD value, such as `50.00`.
+
+Internally, Odock stores budget amounts in nanos USD. This allows small token costs to be tracked precisely.
+
+| UI value | Stored precision |
+| --- | --- |
+| `1.00` | 1,000,000,000 nanos USD |
+| `0.01` | 10,000,000 nanos USD |
+| `50.00` | 50,000,000,000 nanos USD |
+
+## Currency
+
+The budget form includes a currency selector. Current UI options include:
+
+- `USD`
+- `EUR`
+- `LBS`
+
+Cost enforcement is based on the stored amount and the model pricing used by usage records. For model pricing concepts, see [Model Pricing](/docs/models-and-mcp/models/model-pricing).
+
+## Thresholds
+
+Thresholds are percentages such as `50`, `80`, `90`, and `100`. They are warning points for alerting or review workflows.
+
+Thresholds do not replace the hard budget limit. The hard limit is the budget amount.

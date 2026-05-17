@@ -1,0 +1,18 @@
+{
+  "title": "Virtual API Keys",
+  "icon": "KeyRound",
+  "pages": [
+    "index",
+    "scope-and-principals",
+    "access-grants",
+    "key-policies",
+    "lifecycle-and-rotation",
+    "create-api-key",
+    "reveal-api-key",
+    "rotate-api-key",
+    "revoke-api-key",
+    "grant-model-access",
+    "grant-mcp-access",
+    "monitor-api-key"
+  ]
+}

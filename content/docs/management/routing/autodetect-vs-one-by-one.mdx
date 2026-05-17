@@ -1,0 +1,149 @@
+---
+title: Auto-detect vs one by one
+icon: ListChecks
+description: Choose between adding all accessible routing candidates automatically or selecting candidates manually.
+---
+
+# Auto-detect vs one by one
+
+The Routing editor gives you two ways to build a candidate list:
+
+- **Auto-detect** adds the accessible models for the selected model type.
+- **Add candidate** lets you add models one by one.
+
+Both methods only work with models the API key can already access. If a model is missing, grant it under **Model Access** first.
+
+## When To Use Each Method
+
+| Method | Use it when | Tradeoff |
+| --- | --- | --- |
+| Auto-detect | You want to quickly include every accessible model of the selected type. | Fast, but you must review and remove candidates that should not be used. |
+| One by one | You want a controlled list, such as one primary and one backup. | Slower, but safer for production routing plans. |
+
+## Auto-detect Flow
+
+Auto-detect is useful when you are setting up routing for the first time or when all models granted to the key are valid candidates.
+
+<Steps>
+
+<Step>
+Open **API Keys**.
+</Step>
+
+<Step>
+Open the key used by the application.
+</Step>
+
+<Step>
+Confirm the desired models are listed under **Model Access**.
+</Step>
+
+<Step>
+Scroll to **Routing**.
+</Step>
+
+<Step>
+Select the model type tab, such as **chat** or **embeddings**.
+</Step>
+
+<Step>
+Choose the routing strategy.
+</Step>
+
+<Step>
+Click **Auto-detect**.
+</Step>
+
+<Step>
+Review the generated candidate list.
+</Step>
+
+<Step>
+Remove any model that should not receive traffic.
+</Step>
+
+<Step>
+Drag candidates into the intended order.
+</Step>
+
+<Step>
+Wait for the policy to save automatically.
+</Step>
+
+</Steps>
+
+![Autodetect Candidate](/gifs/routing-autodetect.gif)
+
+## One-by-One Flow
+
+Add candidates one by one when the routing plan should be explicit and minimal.
+
+<Steps>
+
+<Step>
+Open **API Keys**.
+</Step>
+
+<Step>
+Open the key used by the application.
+</Step>
+
+<Step>
+Scroll to **Routing**.
+</Step>
+
+<Step>
+Select the model type tab.
+</Step>
+
+<Step>
+Choose the routing strategy.
+</Step>
+
+<Step>
+Click **Add candidate**.
+</Step>
+
+<Step>
+Choose the first model from the candidate selector.
+</Step>
+
+<Step>
+Repeat **Add candidate** for each additional model.
+</Step>
+
+<Step>
+Drag candidates into priority order.
+</Step>
+
+<Step>
+Set max retries and failover triggers so Odock only moves to the next candidate when intended.
+</Step>
+
+<Step>
+Wait for the policy to save automatically.
+</Step>
+
+</Steps>
+
+![Add Candidate one by one](/gifs/routing-manual.gif)
+
+## Recommended Production Pattern
+
+For production failover, prefer one-by-one selection:
+
+1. Add the primary model.
+2. Add one backup model.
+3. Enable `5xx` and `timeout` failover triggers.
+4. Add `rate_limit` only if an upstream/provider rate-limit error, such as HTTP `429`, should move traffic to backup. Here `rate_limit` is the routing failover trigger for a failed attempt, not Odock quota enforcement or API-key rate-limit policy enforcement.
+5. Keep **Max retries** aligned with the number of backups.
+
+Use Auto-detect for discovery, staging, or when every granted model is intentionally eligible for routing.
+
+## What To Check After Either Method
+
+- Candidate models are the same model type.
+- Candidate models are granted under **Model Access**.
+- Candidate order matches your routing strategy.
+- Native fallbacks stay inside the provider family when using native endpoints.
+- Usage Records show the expected direct or rerouted behavior after test traffic.

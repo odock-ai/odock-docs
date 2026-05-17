@@ -1,0 +1,15 @@
+{
+  "title": "Routing",
+  "icon": "GitBranch",
+  "pages": [
+    "index",
+    "routing-concepts",
+    "native-vs-unified-routing",
+    "routing-strategies",
+    "enable-organisation-routing",
+    "configure-api-key-routing",
+    "autodetect-vs-one-by-one",
+    "build-failover-plan",
+    "monitor-routing"
+  ]
+}

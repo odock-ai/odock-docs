@@ -1,0 +1,40 @@
+---
+title: Budgets
+icon: WalletCards
+description: Enforce spend ceilings by organisation, team, user, or API key.
+---
+
+# Budgets
+
+Budgets enforce cost ceilings. They protect an organisation, team, user, or API key from spending more than the configured amount during a time window.
+
+Odock reserves estimated cost before the upstream call and settles actual cost after completion. This prevents concurrent requests from overspending a budget before usage records are written.
+
+## Budget Runtime Flow
+
+```mermaid
+flowchart TD
+  REQ["Gateway request"]
+  MATCH["Find active matching budgets"]
+  ESTIMATE["Estimate request cost"]
+  RESERVE{"All budgets have capacity?"}
+  DENY["402 budget_exceeded"]
+  CALL["Provider or MCP call"]
+  USAGE["Actual usage and cost"]
+  SETTLE["Settle reservation"]
+  WINDOW["Budget window<br/>used + reserved"]
+
+  REQ --> MATCH --> ESTIMATE --> RESERVE
+  RESERVE -- "yes" --> CALL --> USAGE --> SETTLE --> WINDOW
+  RESERVE -- "no" --> DENY
+```
+
+## Pages In This Submenu
+
+- [Owner inheritance](/docs/management/budgets/owner-inheritance)
+- [Windows and reservations](/docs/management/budgets/windows-and-reservations)
+- [Amounts and thresholds](/docs/management/budgets/amounts-and-thresholds)
+- [Create a budget](/docs/management/budgets/create-budget)
+- [Create an API-key budget](/docs/management/budgets/api-key-budget)
+- [Monitor a budget](/docs/management/budgets/monitor-budget)
+- [Handle budget exceeded](/docs/management/budgets/budget-exceeded)

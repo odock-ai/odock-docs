@@ -1,0 +1,49 @@
+---
+title: Windows and reservations
+icon: CalendarClock
+description: How quota schedules, windows, reserved values, and used values work.
+---
+
+# Windows and reservations
+
+A quota schedule creates windows. Each window tracks:
+
+- metric,
+- used value,
+- reserved value,
+- start and end time.
+
+| Schedule field | Meaning |
+| --- | --- |
+| Start At | When the quota schedule begins. |
+| Period | `DAILY`, `WEEKLY`, `MONTHLY`, or `QUARTERLY`. |
+| Timezone | Timezone used for window boundaries. |
+| End At | Optional time after which the quota is inactive. |
+| Rollover | Whether unused capacity can roll forward when supported. |
+| Active | Whether the quota is enforced. |
+
+```mermaid
+flowchart LR
+  SCHEDULE["Quota schedule"]
+  W1["Window 1<br/>used + reserved"]
+  W2["Window 2<br/>used + reserved"]
+  W3["Window 3<br/>used + reserved"]
+
+  SCHEDULE --> W1 --> W2 --> W3
+```
+
+## Reservation Lifecycle
+
+```mermaid
+flowchart TD
+  ESTIMATE["Estimate metric usage"]
+  RESERVE["Reserve metric value"]
+  CALL["Call upstream"]
+  ACTUAL["Read actual usage"]
+  SETTLE["Move actual value to used"]
+  RELEASE["Release unused reservation"]
+
+  ESTIMATE --> RESERVE --> CALL --> ACTUAL --> SETTLE --> RELEASE
+```
+
+For `REQUESTS`, the estimate is usually one request. For tokens and cost, Odock can reserve an estimate and settle after the provider returns exact usage.

@@ -1,0 +1,41 @@
+---
+title: Quotas
+icon: Gauge
+description: Enforce request, token, error, cost, and latency ceilings.
+---
+
+# Quotas
+
+Quotas enforce numeric usage ceilings. Where budgets control spend, quotas control measurable runtime activity such as request count, token count, errors, cost, and latency.
+
+Use quotas to protect workloads from unexpected volume, runaway jobs, broken integrations, and noisy clients.
+
+## Quota Runtime Flow
+
+```mermaid
+flowchart TD
+  REQ["Gateway request"]
+  MATCH["Find active matching quotas"]
+  ESTIMATE["Estimate metric usage"]
+  RESERVE{"All quotas have capacity?"}
+  DENY["429 quota_exceeded"]
+  CALL["Provider or MCP call"]
+  USAGE["Actual usage"]
+  SETTLE["Settle reservation"]
+  WINDOW["Quota window<br/>used + reserved"]
+
+  REQ --> MATCH --> ESTIMATE --> RESERVE
+  RESERVE -- "yes" --> CALL --> USAGE --> SETTLE --> WINDOW
+  RESERVE -- "no" --> DENY
+```
+
+## Pages In This Submenu
+
+- [Quota metrics](/docs/management/quotas/metrics)
+- [Owner inheritance](/docs/management/quotas/owner-inheritance)
+- [Windows and reservations](/docs/management/quotas/windows-and-reservations)
+- [Quotas vs rate limits](/docs/management/quotas/quotas-vs-rate-limits)
+- [Create a quota](/docs/management/quotas/create-quota)
+- [Create an API-key quota](/docs/management/quotas/api-key-quota)
+- [Monitor a quota](/docs/management/quotas/monitor-quota)
+- [Handle quota exceeded](/docs/management/quotas/quota-exceeded)

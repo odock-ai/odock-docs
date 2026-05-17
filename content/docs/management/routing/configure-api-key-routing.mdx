@@ -1,0 +1,67 @@
+---
+title: Configure API-key routing
+icon: ListChecks
+description: Add routing candidates and strategy on a virtual API key.
+---
+
+# Configure API-key routing
+
+Use this workflow after organisation routing is enabled and the key has access to the candidate models.
+
+<Steps>
+
+<Step>
+Open **API Keys**.
+</Step>
+
+<Step>
+Open the key used by the application.
+</Step>
+
+<Step>
+Confirm every candidate model appears under **Model Access**.
+</Step>
+
+<Step>
+Scroll to **Routing**.
+![Routing Tab overview](/gifs/routing-toure.gif)
+
+</Step>
+
+
+
+<Step>
+Select the model type tab, such as **chat** or **embeddings**.
+</Step>
+
+<Step>
+Choose a strategy: **Failover**, **Priority**, or **Round robin**.
+</Step>
+
+<Step>
+Set **Max retries** and **Retry delay (ms)**.
+</Step>
+
+<Step>
+Choose failover triggers.
+</Step>
+
+<Step>
+Use **Auto-detect** to add accessible models for the type, or **Add candidate** to add them manually.
+</Step>
+
+<Step>
+Drag candidates into the intended priority order.
+</Step>
+
+<Step>
+For native endpoints, configure provider-family native fallbacks when needed.
+</Step>
+
+<Step>
+The policy save automaticly.
+</Step>
+
+</Steps>
+
+![Routing Configure ](/gifs/routing-setup.gif)

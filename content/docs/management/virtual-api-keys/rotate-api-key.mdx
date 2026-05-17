@@ -1,0 +1,75 @@
+---
+title: Rotate an API key
+icon: ListChecks
+description: Generate a new secret on the same API key record.
+---
+
+# Rotate an API key
+
+Rotate a key when it may be exposed, when ownership changes, when an expired key should be renewed, or as part of a planned credential rotation process.
+
+Rotation happens in place. Odock keeps the same API key ID and generates a new secret value on that existing key. The old secret stops working, but the key keeps its model access, MCP access, routing policies, budgets, quotas, usage attribution, and detail page references.
+
+<Steps>
+
+<Step>
+Open your organisation workspace.
+</Step>
+
+<Step>
+Open **API Keys** from the sidebar.
+</Step>
+
+<Step>
+Find the key you want to rotate.
+</Step>
+
+<Step>
+Click **Rotate** in the key row actions.
+</Step>
+
+<Step>
+In the rotation dialog, choose a **New expiry** or Leave it empty for **no expiry**.
+</Step>
+
+<Step>
+Click **Rotate**.
+</Step>
+
+<Step>
+Copy the new key value when the UI shows or copies it. Rotation resets the key's reveal state, so the new secret can be revealed once.
+</Step>
+
+<Step>
+Update the application secret or deployment secret that stores `ODOCK_API_KEY`.
+</Step>
+
+<Step>
+Redeploy or restart the application so it uses the new key.
+</Step>
+
+<Step>
+Open **Usage Records** and confirm new traffic is still attributed to the same API key ID.
+</Step>
+
+<Step>
+Open the key detail page and review **Rotation History** for the rotation date, previous expiry, new expiry, and rotating user.
+</Step>
+
+</Steps>
+
+![Rotate an api key](/gifs/apikeys-rotate-key.gif)
+
+## After Rotation
+
+Check that the application secret was updated. The old secret should stop authenticating after gateway cache invalidation or cache expiry.
+
+You do not need to recreate model access, MCP access, routing, budgets, or quotas. They remain attached because the API key ID did not change.
+
+Expired keys can be rotated. Choose a future expiry or leave expiry empty. Past expiry values are rejected.
+
+## Related Pages
+
+- [Lifecycle and rotation](/docs/management/virtual-api-keys/lifecycle-and-rotation)
+- [Reveal an API key](/docs/management/virtual-api-keys/reveal-api-key)
+- [Monitor an API key](/docs/management/virtual-api-keys/monitor-api-key)

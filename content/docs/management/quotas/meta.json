@@ -1,0 +1,15 @@
+{
+  "title": "Quotas",
+  "icon": "Gauge",
+  "pages": [
+    "index",
+    "metrics",
+    "owner-inheritance",
+    "windows-and-reservations",
+    "quotas-vs-rate-limits",
+    "create-quota",
+    "api-key-quota",
+    "monitor-quota",
+    "quota-exceeded"
+  ]
+}
