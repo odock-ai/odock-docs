@@ -51,9 +51,9 @@ For endpoint details, see [Endpoints](/docs/models-and-mcp/endpoints).
 
 | Transport | Use when | Required setup |
 | --- | --- | --- |
-| `STREAMABLE_HTTP` | The MCP server exposes an HTTP endpoint that supports streamable MCP traffic. | Endpoint URL. |
-| `SSE` | The MCP server streams responses using server-sent events. | Endpoint URL. |
-| `STDIO` | Odock should launch a local command and communicate over standard input/output. | Command, args, and optional environment JSON. |
+| [`STREAMABLE_HTTP`](/docs/models-and-mcp/mcp-servers/streamable-http-transport) | The MCP server exposes an HTTP endpoint that supports streamable MCP traffic. | Endpoint URL. |
+| [`SSE`](/docs/models-and-mcp/mcp-servers/sse-transport) | The MCP server streams responses using server-sent events. | Endpoint URL. |
+| [`STDIO`](/docs/models-and-mcp/mcp-servers/stdio-transport) | Odock should launch a local command and communicate over standard input/output. | Command, args, and optional environment JSON. |
 
 Choose the transport that matches how the MCP server runs. For production, prefer a stable HTTP or SSE service when possible. Use STDIO for local or packaged tool servers that are meant to be launched by the gateway environment.
 
@@ -62,6 +62,8 @@ Choose the transport that matches how the MCP server runs. For production, prefe
 MCP upstream auth can be `NONE`, `BEARER`, `BASIC`, or `OAUTH2`.
 
 Auth config is stored on the MCP server record and used when Odock proxies to the upstream MCP server. A virtual API key authenticates the caller to Odock; MCP auth authenticates Odock to the MCP server.
+
+For auth config examples, see [MCP authentication](/docs/models-and-mcp/mcp-servers/authentication).
 
 ## Scope And Access
 
@@ -84,6 +86,8 @@ Use access grants for normal permissioning. Use Team Scope or API Key Scope when
 Allowed and blocked tools are useful when a server exposes both read-only and write-capable tools. For example, you might allow `search` and `open` while blocking a destructive repository operation.
 
 For broader guardrail behavior, see [Guardrails](/docs/security-and-guardrails/guardrails).
+
+For MCP-specific access grants, scopes, tool rules, semantic filters, and transport security, see [MCP security](/docs/models-and-mcp/mcp-servers/security).
 
 ## MCP Pricing
 
@@ -108,8 +112,16 @@ flowchart LR
 
 MCP usage records include the pricing snapshot so later reporting can explain how the cost was calculated.
 
+For pricing fields, cost formula, and examples, see [MCP pricing](/docs/models-and-mcp/mcp-servers/pricing).
+
 ## MCP Workflows
 
+- [Streamable HTTP transport](/docs/models-and-mcp/mcp-servers/streamable-http-transport)
+- [SSE transport](/docs/models-and-mcp/mcp-servers/sse-transport)
+- [STDIO transport](/docs/models-and-mcp/mcp-servers/stdio-transport)
+- [MCP authentication](/docs/models-and-mcp/mcp-servers/authentication)
+- [MCP pricing](/docs/models-and-mcp/mcp-servers/pricing)
+- [MCP security](/docs/models-and-mcp/mcp-servers/security)
 - [Add MCP servers from the trusted catalog](/docs/models-and-mcp/mcp-servers/add-from-trusted-catalog)
 - [Add an MCP server manually](/docs/models-and-mcp/mcp-servers/add-manually)
 - [Review MCP transport](/docs/models-and-mcp/mcp-servers/review-transport)

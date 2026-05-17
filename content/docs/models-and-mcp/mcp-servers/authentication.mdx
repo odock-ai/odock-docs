@@ -1,0 +1,83 @@
+---
+title: MCP authentication
+description: Configure upstream authentication for MCP servers.
+---
+
+# MCP Authentication
+
+MCP authentication has two layers.
+
+The virtual API key authenticates the application to Odock. The MCP server auth config authenticates Odock to the upstream MCP server.
+
+Do not put upstream MCP credentials in application code. Store them on the MCP server record in Odock.
+
+## Auth Types
+
+| Auth type | What Odock sends upstream | Auth config shape |
+| --- | --- | --- |
+| `NONE` | No upstream auth header. | Empty or omitted. |
+| `BEARER` | `Authorization: Bearer <token>` | `{"token":"..."}` |
+| `BASIC` | HTTP Basic auth header. | `{"username":"...","password":"..."}` |
+| `OAUTH2` | `Authorization: Bearer <access_token>` from client credentials flow. | `{"tokenUrl":"...","clientId":"...","clientSecret":"...","scope":"...","audience":"..."}` |
+
+`scope` and `audience` are optional for OAuth2 and should match the upstream authorization server.
+
+## Bearer Example
+
+Use bearer auth when the upstream MCP server expects a static API token.
+
+```json
+{
+  "token": "upstream-tool-token"
+}
+```
+
+Odock forwards:
+
+```txt
+Authorization: Bearer upstream-tool-token
+```
+
+## Basic Example
+
+Use basic auth when the upstream MCP server expects a username and password.
+
+```json
+{
+  "username": "odock",
+  "password": "upstream-password"
+}
+```
+
+## OAuth2 Client Credentials Example
+
+Use OAuth2 when the upstream MCP server expects short-lived access tokens from an authorization server.
+
+```json
+{
+  "tokenUrl": "https://auth.example.com/oauth/token",
+  "clientId": "odock-mcp-client",
+  "clientSecret": "client-secret",
+  "scope": "mcp:tools",
+  "audience": "https://tools.example.com"
+}
+```
+
+Odock exchanges the client credentials for an access token, caches the token while it is valid, and sends it as a bearer token to the upstream MCP server.
+
+## Header Forwarding Behavior
+
+Odock does not forward the caller's `Authorization`, `x-api-key`, `Host`, or `Content-Length` headers to the upstream MCP server. This prevents a caller's Odock virtual API key from leaking to the tool server.
+
+Odock injects the configured MCP upstream auth after governance checks pass.
+
+## Choosing An Auth Type
+
+| Situation | Recommended auth |
+| --- | --- |
+| Internal MCP server with network isolation only | `NONE`, plus Odock access grants and network controls. |
+| Hosted tool server with one service token | `BEARER`. |
+| Legacy service that expects username/password | `BASIC`. |
+| Enterprise service with token rotation and scopes | `OAUTH2`. |
+
+For security guidance around auth storage and tool permissions, see [MCP security](/docs/models-and-mcp/mcp-servers/security).

@@ -1,11 +1,14 @@
 ---
-title: Add from the trusted catalog
+title: Add from catalog
+icon: ListChecks
 description: Import trusted MCP servers and configure them before production use.
 ---
 
 # Add from the trusted catalog
 
 Use the trusted catalog when the tool server is listed.
+
+The catalog provides a starting point. Before production use, still review [MCP authentication](/docs/models-and-mcp/mcp-servers/authentication), [MCP security](/docs/models-and-mcp/mcp-servers/security), and [MCP pricing](/docs/models-and-mcp/mcp-servers/pricing).
 
 <Steps>
 
@@ -28,7 +31,7 @@ In **Select**, search by name, slug, description, or tag.
 <Step>
 Filter by existing status, transport type, auth type, or category.
 
-> Screenshot placeholder: Trusted MCP catalog dialog on the Select step with search, existing filter, transport filter, auth filter, category filter, grid/list toggle, server cards, tags, and official links.
+![Filter MCP Servers](/images/mcp-catalog-filters.png)
 </Step>
 
 <Step>
@@ -46,7 +49,9 @@ Optionally set Team Scope or API Key Scope.
 <Step>
 For each selected server, review name, description, transport, endpoint or STDIO settings, auth type, auth config, enabled status, public internet flag, allowed tools, blocked tools, and metadata.
 
-> Screenshot placeholder: Trusted MCP catalog dialog on the Configure step showing Team Scope, API Key Scope, selected server transport settings, auth settings, allowed tools, blocked tools, and metadata.
+Use the transport pages when reviewing server behavior: [Streamable HTTP transport](/docs/models-and-mcp/mcp-servers/streamable-http-transport), [SSE transport](/docs/models-and-mcp/mcp-servers/sse-transport), and [STDIO transport](/docs/models-and-mcp/mcp-servers/stdio-transport).
+
+![MCP config](/images/mcp-catalog-config.png)
 </Step>
 
 <Step>
@@ -56,7 +61,9 @@ Review the final step.
 <Step>
 Create the selected MCP servers.
 
-> GIF placeholder: Importing a GitHub-like MCP server from the trusted catalog, configuring auth and allowed tools, reviewing, and creating it.
 </Step>
 
 </Steps>
+
+
+![Add MCP Server from Catalog ](/gifs/mcp-add-catalog.gif)
