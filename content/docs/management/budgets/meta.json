@@ -7,6 +7,7 @@
     "windows-and-reservations",
     "amounts-and-thresholds",
     "create-budget",
+    "team-budget",
     "api-key-budget",
     "monitor-budget",
     "budget-exceeded"
