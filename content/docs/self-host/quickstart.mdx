@@ -1,0 +1,45 @@
+---
+title: Deployment Overview
+icon: Terminal
+---
+
+# Deployment Overview
+
+This section is not a deployment tutorial. It is a high-level view of what a self-hosted Odock rollout typically involves.
+
+Self-hosting access is currently available on request for testing users and selected clients. Contact us if you want to discuss fit, deployment shape, or evaluation access.
+
+## What Needs To Be In Place
+
+A self-hosted Odock environment usually brings together a few standard platform building blocks:
+
+- a compute layer for the gateway and operator UI
+- a persistent data layer for platform state and usage records
+- a runtime coordination layer for operational support services
+- an ingress layer for routing, TLS, and hostname management
+- an operator access model for admins, platform owners, and support teams
+
+## What Teams Usually Decide
+
+Before moving into a test or client deployment, teams usually decide:
+
+- where the platform should run
+- how inbound traffic should be exposed
+- which internal users should manage the platform
+- how secrets and encryption keys should be handled
+- whether observability should be included from the start
+
+## Typical Evaluation Goal
+
+The usual goal of an early self-hosted evaluation is not to optimize every infrastructure detail. It is to confirm that Odock fits your architecture, governance model, and upstream AI landscape.
+
+That usually means validating:
+
+- how applications and agents connect to the gateway
+- how operators manage models, providers, API keys, and policies
+- how usage and governance data appear inside the platform
+- how the deployment would integrate with your internal standards later
+
+## Contact Us
+
+If you want a walkthrough of the self-hosted model, contact us. We can share more details with testing users and prospective clients based on their environment and goals.

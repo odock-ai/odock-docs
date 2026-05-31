@@ -1,0 +1,9 @@
+{
+  "title": "Tools",
+  "icon": "Wrench",
+  "pages": [
+    "index",
+    "invoices",
+    "ai-playground"
+  ]
+}

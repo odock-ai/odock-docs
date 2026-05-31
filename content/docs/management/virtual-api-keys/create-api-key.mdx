@@ -1,0 +1,59 @@
+---
+title: Create an API key
+icon: ListChecks
+description: Create a virtual API key from the organisation UI.
+---
+
+# Create an API key
+
+Use this workflow when you need a new runtime credential for an application, agent, or workflow.
+
+<Steps>
+
+<Step>
+Open your organisation workspace.
+</Step>
+
+<Step>
+In the sidebar, open **API Keys**.
+</Step>
+
+<Step>
+Click **Add New API Key**.
+</Step>
+
+<Step>
+Choose **Type**: **Organisation**, **Team**, or **User**.
+</Step>
+
+<Step>
+If you choose **Team**, select the team. If you choose **User**, select the user.
+</Step>
+
+<Step>
+Set **Expiry** if this key should stop working at a known date.
+</Step>
+
+<Step>
+Set **Timezone** so expiry and time-based views match the owner context.
+</Step>
+
+<Step>
+Leave **Revoked** unchecked for a usable key.
+</Step>
+
+<Step>
+Create the key.
+</Step>
+
+<Step>
+Reveal the key once and store it in your application secret manager.
+</Step>
+
+</Steps>
+
+![Add a virtual apikey](/gifs/setup-add-apikey.gif)
+
+## Next Steps
+
+After creating the key, [reveal it](/docs/management/virtual-api-keys/reveal-api-key), grant [model access](/docs/management/virtual-api-keys/grant-model-access), grant [MCP access](/docs/management/virtual-api-keys/grant-mcp-access), or attach [budgets](/docs/management/budgets) and [quotas](/docs/management/quotas).

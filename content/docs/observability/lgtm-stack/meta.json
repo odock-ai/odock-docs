@@ -1,0 +1,15 @@
+{
+  "title": "LGTM Stack",
+  "icon": "ChartSpline",
+  "pages": [
+    "index",
+    "data-flow",
+    "metrics",
+    "traces",
+    "logs",
+    "grafana-dashboards",
+    "alerts",
+    "otel-config",
+    "tutorials"
+  ]
+}

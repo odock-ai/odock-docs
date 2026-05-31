@@ -1,0 +1,10 @@
+{
+  "title": "Observability",
+  "icon": "Activity",
+  "pages": [
+    "index",
+    "usage-records",
+    "traffic-analytics",
+    "lgtm-stack"
+  ]
+}

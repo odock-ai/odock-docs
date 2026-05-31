@@ -1,0 +1,45 @@
+---
+title: Owner inheritance
+description: Understand how organisation, team, user, and API-key quotas combine.
+---
+
+# Owner inheritance
+
+All active matching quotas apply. A request must fit every quota in the principal chain.
+
+| Owner type | Applies to | Typical use |
+| --- | --- | --- |
+| `ORG` | All matching organisation traffic. | Organisation request or token ceiling. |
+| `TEAM` | Traffic from team-scoped keys for the selected team. | Team usage envelope. |
+| `USER` | Traffic from user-scoped keys for the selected user. | Personal experimentation limit. |
+| `APIKEY` | Traffic from one virtual API key. | Application, environment, or customer limit. |
+
+```mermaid
+flowchart TD
+  REQ["Request principal"]
+  ORG["Organisation quotas"]
+  TEAM{"Team-scoped key?"}
+  USER{"User-scoped key?"}
+  KEY["API-key quotas"]
+  ALL["All active matching quotas"]
+  OK{"Capacity in all windows?"}
+  ALLOW["Reserve and continue"]
+  BLOCK["429 quota_exceeded"]
+
+  REQ --> ORG --> TEAM
+  TEAM -- "yes" --> TEAM_Q["Team quotas"] --> KEY
+  TEAM -- "no" --> USER
+  USER -- "yes" --> USER_Q["User quotas"] --> KEY
+  USER -- "no" --> KEY
+  KEY --> ALL --> OK
+  OK -- "yes" --> ALLOW
+  OK -- "no" --> BLOCK
+```
+
+## Example
+
+A user-scoped key can be stopped by:
+
+- an organisation daily requests quota,
+- a user weekly token quota,
+- an API-key daily errors quota.

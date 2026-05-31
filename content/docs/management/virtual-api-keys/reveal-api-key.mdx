@@ -1,0 +1,67 @@
+---
+title: Reveal an API key
+icon: ListChecks
+description: Reveal the current virtual API key secret once and store it safely.
+---
+
+# Reveal an API key
+
+API keys are reveal-once secrets. When a key has not been revealed, the UI can show the full current secret once. After reveal, the key is marked as revealed and later reads return only a masked value.
+
+After rotation, `revealed` is reset to `false`, so the newly generated secret can be revealed once.
+
+<Steps>
+
+<Step>
+Open your organisation workspace.
+</Step>
+
+<Step>
+Open **API Keys** from the sidebar.
+</Step>
+
+<Step>
+Find the key you want to reveal.
+</Step>
+
+<Step>
+If the table row shows **Revealed: No**  :  
+</Step>
+
+
+**A : You eather** click **Reveal** from the row actions `the key will be copied automaticly`: 
+![Reveal an api key from table actions](/gifs/apikeys-reveal-from-table.gif)
+
+
+**B : or**  open the key detail page and use the **Reveal API Key** card: 
+![Reveal an api key from reveal card](/gifs/apikeys-reveal-from-card.gif)
+
+<Step>
+Confirm the reveal dialog if prompted.
+</Step>
+
+<Step>
+Copy the full key value immediately.
+</Step>
+
+<Step>
+Store it in your application secret manager, CI secret, or deployment secret.
+</Step>
+
+<Step>
+Return to the API Keys table and confirm the key now shows **Revealed: Yes**.
+</Step>
+
+</Steps>
+
+
+
+
+## If The Key Was Already Revealed
+
+If the key was already revealed and the full secret is not available in your secret manager, rotate the key. Rotation generates a new secret on the same API key record and resets the reveal state so you can reveal the new secret once.
+
+## Related Pages
+
+- [Rotate an API key](/docs/management/virtual-api-keys/rotate-api-key)
+- [Lifecycle and rotation](/docs/management/virtual-api-keys/lifecycle-and-rotation)

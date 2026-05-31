@@ -1,0 +1,11 @@
+{
+  "title": "Self Host",
+  "icon": "Server",
+  "pages": [
+    "index",
+    "quickstart",
+    "config-files",
+    "docker-compose",
+    "observability-stack"
+  ]
+}

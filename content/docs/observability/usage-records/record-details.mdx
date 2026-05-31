@@ -1,0 +1,141 @@
+---
+title: Record details
+description: The single-pane view of one gateway request.
+---
+
+# Record details
+
+Clicking a row in the Usage Records table opens the detail page for that request. It is the single-pane view of one call — header fields at the top, a routing section, and breakdown cards below.
+
+![Usage record detail page](/gifs/obs-recordusage-details.gif)
+
+## Header
+
+The top of the page is a read-only grid of the most useful fields:
+
+| Field | Use it for |
+| --- | --- |
+| **Request ID** | Correlating with your application logs and support tickets. |
+| **Provider / Model** | Confirming which target served the call. |
+| **HTTP Status** | The final outcome returned to your application. |
+| **Latency** | Total wall-clock duration. |
+| **Billable tokens / Cost** | What you were charged. |
+| **Provider Request ID** | The id assigned by the upstream provider — useful when filing a ticket with the provider. |
+| **API Key / Team / User** | The principal that signed the request. |
+| **Timestamp** | When the call completed. |
+
+![Usage record details](/images/obs-usage-details.png)
+
+## Routing Section
+
+If smart routing is enabled, a card shows the attempt chain in the order it ran:
+
+- a **Direct** badge when the originally requested target served the call,
+- a **Rerouted** badge when a fallback took over,
+- one row per attempt with the provider, the model, the outcome (success, failed), and the error string for failed attempts.
+
+![Routing card on a usage record showing two attempts](/images/obs-usage-routing.png)
+
+The provider and model in the header always reflect the attempt that actually answered. When the card says **Rerouted**, the original target is in the attempt chain, not the header.
+
+## Breakdown Cards
+
+Below the routing section, breakdown cards render the structured payloads attached to the record:
+
+| Card | What it shows |
+| --- | --- |
+| **Billing** | The cost breakdown the calculator produced, with per-token-class amounts and cache discounts when applicable. |
+| **Tokens** | Normalized totals plus any per-class breakdown returned by the provider (input, output, cached, reasoning, audio, image, tool). |
+| **ProviderUsage** | The provider's own usage payload as returned. The same numbers the provider would show in its console. |
+| **Routing** | The routing payload in raw form. The card above this is the structured view of the same data. |
+| **Metadata** | Gateway traceability — plugin executions and durations, safety decisions, and rate-limit stage outcomes. |
+
+<div className="usage-breakdown-carousel" aria-label="Usage breakdown cards carousel">
+  <img
+    src="/images/obs-usage-billing.png"
+    alt="Billing breakdown card on a usage record"
+  />
+  <img
+    src="/images/obs-usage-metadata.png"
+    alt="Metadata breakdown card on a usage record"
+  />
+  <img
+    src="/images/obs-usage-provider.png"
+    alt="Provider usage breakdown card on a usage record"
+  />
+  <img
+    src="/images/obs-usage-tokens.png"
+    alt="Tokens breakdown card on a usage record"
+  />
+</div>
+
+<style>{`
+  .usage-breakdown-carousel {
+    position: relative;
+    width: 900px;
+    height: 520px;
+    max-width: 100%;
+    overflow: hidden;
+    border-radius: 12px;
+  }
+
+  .usage-breakdown-carousel img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    opacity: 0;
+    animation: usageBreakdownCarousel 12s infinite;
+  }
+
+  .usage-breakdown-carousel img:not(:first-child) {
+    position: absolute;
+    inset: 0;
+  }
+
+  .usage-breakdown-carousel img:nth-child(1) {
+    animation-delay: 0s;
+  }
+
+  .usage-breakdown-carousel img:nth-child(2) {
+    animation-delay: 3s;
+  }
+
+  .usage-breakdown-carousel img:nth-child(3) {
+    animation-delay: 6s;
+  }
+
+  .usage-breakdown-carousel img:nth-child(4) {
+    animation-delay: 9s;
+  }
+
+  @keyframes usageBreakdownCarousel {
+    0%,
+    24% {
+      opacity: 1;
+    }
+
+    25%,
+    100% {
+      opacity: 0;
+    }
+  }
+`}</style>
+
+
+Each card hides itself when it has nothing to show. A call that failed at auth, for example, has no token, billing, or routing data, so only the metadata card will appear.
+
+## Typical Investigation
+
+| You are debugging... | Open... |
+| --- | --- |
+| A user-reported slow call | The Routing section and the Metadata card. Plugin durations there often explain a regression. |
+| A 4xx your user did not expect | The Metadata card. It records which gate denied the request. |
+| A cost that looks wrong | The Billing and Tokens cards. |
+| A provider-side issue | The Provider Request ID in the header — pass it to provider support. |
+
+## Tips
+
+<Callout type="tip">
+Copy the **Request ID** when filing an internal ticket. It is the single id that ties together the persisted record, your application logs, and any platform-side trace.
+</Callout>

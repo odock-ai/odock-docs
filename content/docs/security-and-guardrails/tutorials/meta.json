@@ -1,0 +1,12 @@
+{
+  "title": "Tutorials",
+  "icon": "ListChecks",
+  "pages": [
+    "index",
+    "organisation-policy",
+    "api-key-policy",
+    "model-policy",
+    "mcp-guardrails",
+    "verify-enforcement"
+  ]
+}

@@ -1,0 +1,231 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Count 1 /Kids [6 0 R] >>
+endobj
+3 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+4 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>
+endobj
+5 0 obj
+<< /Length 5481 >>
+stream
+0.059 0.090 0.165 rg
+0 722 595 120 re f
+1.000 1.000 1.000 rg
+BT /F2 22 Tf 32 796 Td (ODOCK INVOICE) Tj ET
+0.749 0.859 0.996 rg
+BT /F1 11 Tf 32 772 Td (Cost Summary by Category) Tj ET
+0.859 0.918 0.996 rg
+BT /F1 10 Tf 32 752 Td (Period: 3/31/2026 - 6/1/2026) Tj ET
+0.859 0.918 0.996 rg
+BT /F1 10 Tf 300 796 Td (Scope: Organisation cmp54rkx4000esb8di9kztdmo) Tj ET
+0.859 0.918 0.996 rg
+BT /F1 10 Tf 300 778 Td (Generated: 5/19/2026, 4:27:33 AM) Tj ET
+0.749 0.859 0.996 rg
+BT /F1 9 Tf 300 760 Td (Team filters: all | API key filters: all) Tj ET
+0.973 0.980 0.988 rg
+32 640 169 64 re f
+0.055 0.455 0.565 rg
+32 698 169 6 re f
+0.278 0.333 0.412 rg
+BT /F1 10 Tf 42 679 Td (Total Cost) Tj ET
+0.059 0.090 0.165 rg
+BT /F2 15 Tf 42 656 Td ($0.866814200) Tj ET
+0.973 0.980 0.988 rg
+209 640 169 64 re f
+0.020 0.588 0.412 rg
+209 698 169 6 re f
+0.278 0.333 0.412 rg
+BT /F1 10 Tf 219 679 Td (LLM Cost) Tj ET
+0.059 0.090 0.165 rg
+BT /F2 15 Tf 219 656 Td ($0.860210200) Tj ET
+0.973 0.980 0.988 rg
+386 640 169 64 re f
+0.486 0.227 0.929 rg
+386 698 169 6 re f
+0.278 0.333 0.412 rg
+BT /F1 10 Tf 396 679 Td (MCP Cost) Tj ET
+0.059 0.090 0.165 rg
+BT /F2 15 Tf 396 656 Td ($0.006604000) Tj ET
+0.937 0.965 1.000 rg
+24 588 547 34 re f
+0.118 0.251 0.686 rg
+BT /F2 12 Tf 32 601 Td (Acme Labs) Tj ET
+0.118 0.251 0.686 rg
+BT /F2 11 Tf 420 601 Td (Total $0.866814200) Tj ET
+0.067 0.094 0.153 rg
+BT /F2 12 Tf 32 568 Td (Cost by Category) Tj ET
+0.980 0.980 0.988 rg
+32 482 531 74 re f
+0.886 0.910 0.941 rg
+32 536 531 20 re f
+0.122 0.161 0.216 rg
+BT /F2 9 Tf 40 542 Td (Category) Tj ET
+0.122 0.161 0.216 rg
+BT /F2 9 Tf 473 542 Td (Cost) Tj ET
+0.898 0.906 0.922 RG
+32 518 m 563 518 l S
+0.216 0.255 0.318 rg
+BT /F1 9 Tf 40 523 Td (LLM / Models) Tj ET
+0.067 0.094 0.153 rg
+BT /F2 9 Tf 473 523 Td ($0.860210200) Tj ET
+1.000 1.000 1.000 rg
+32 500 531 18 re f
+0.898 0.906 0.922 RG
+32 500 m 563 500 l S
+0.216 0.255 0.318 rg
+BT /F1 9 Tf 40 505 Td (MCP) Tj ET
+0.067 0.094 0.153 rg
+BT /F2 9 Tf 473 505 Td ($0.006604000) Tj ET
+0.898 0.906 0.922 RG
+32 482 m 563 482 l S
+0.216 0.255 0.318 rg
+BT /F1 9 Tf 40 487 Td (Total) Tj ET
+0.067 0.094 0.153 rg
+BT /F2 9 Tf 473 487 Td ($0.866814200) Tj ET
+0.067 0.094 0.153 rg
+BT /F2 12 Tf 32 462 Td (Cost by Team) Tj ET
+0.980 0.980 0.988 rg
+32 412 531 38 re f
+0.886 0.910 0.941 rg
+32 430 531 20 re f
+0.122 0.161 0.216 rg
+BT /F2 9 Tf 40 436 Td (Category) Tj ET
+0.122 0.161 0.216 rg
+BT /F2 9 Tf 473 436 Td (Cost) Tj ET
+0.898 0.906 0.922 RG
+32 412 m 563 412 l S
+0.216 0.255 0.318 rg
+BT /F1 9 Tf 40 417 Td (HR Departement) Tj ET
+0.067 0.094 0.153 rg
+BT /F2 9 Tf 473 417 Td ($0.697529200) Tj ET
+0.067 0.094 0.153 rg
+BT /F2 12 Tf 32 392 Td (Direct Organisation API Keys) Tj ET
+0.980 0.980 0.988 rg
+32 342 531 38 re f
+0.886 0.910 0.941 rg
+32 360 531 20 re f
+0.122 0.161 0.216 rg
+BT /F2 9 Tf 40 366 Td (Category) Tj ET
+0.122 0.161 0.216 rg
+BT /F2 9 Tf 473 366 Td (Cost) Tj ET
+0.898 0.906 0.922 RG
+32 342 m 563 342 l S
+0.216 0.255 0.318 rg
+BT /F1 9 Tf 40 347 Td (API Key cmp7c9qv) Tj ET
+0.067 0.094 0.153 rg
+BT /F2 9 Tf 473 347 Td ($0.169285000) Tj ET
+0.067 0.094 0.153 rg
+BT /F2 12 Tf 32 322 Td (Cost by Model) Tj ET
+0.980 0.980 0.988 rg
+32 146 531 164 re f
+0.886 0.910 0.941 rg
+32 290 531 20 re f
+0.122 0.161 0.216 rg
+BT /F2 9 Tf 40 296 Td (Category) Tj ET
+0.122 0.161 0.216 rg
+BT /F2 9 Tf 473 296 Td (Cost) Tj ET
+0.898 0.906 0.922 RG
+32 272 m 563 272 l S
+0.216 0.255 0.318 rg
+BT /F1 9 Tf 40 277 Td (claude-sonnet-4-5) Tj ET
+0.067 0.094 0.153 rg
+BT /F2 9 Tf 473 277 Td ($0.607926000) Tj ET
+1.000 1.000 1.000 rg
+32 254 531 18 re f
+0.898 0.906 0.922 RG
+32 254 m 563 254 l S
+0.216 0.255 0.318 rg
+BT /F1 9 Tf 40 259 Td (gpt-image-1) Tj ET
+0.067 0.094 0.153 rg
+BT /F2 9 Tf 473 259 Td ($0.166525000) Tj ET
+0.898 0.906 0.922 RG
+32 236 m 563 236 l S
+0.216 0.255 0.318 rg
+BT /F1 9 Tf 40 241 Td (o3) Tj ET
+0.067 0.094 0.153 rg
+BT /F2 9 Tf 473 241 Td ($0.035588000) Tj ET
+1.000 1.000 1.000 rg
+32 218 531 18 re f
+0.898 0.906 0.922 RG
+32 218 m 563 218 l S
+0.216 0.255 0.318 rg
+BT /F1 9 Tf 40 223 Td (gpt-4.1) Tj ET
+0.067 0.094 0.153 rg
+BT /F2 9 Tf 473 223 Td ($0.019428000) Tj ET
+0.898 0.906 0.922 RG
+32 200 m 563 200 l S
+0.216 0.255 0.318 rg
+BT /F1 9 Tf 40 205 Td (gemini-2.5-flash) Tj ET
+0.067 0.094 0.153 rg
+BT /F2 9 Tf 473 205 Td ($0.015499900) Tj ET
+1.000 1.000 1.000 rg
+32 182 531 18 re f
+0.898 0.906 0.922 RG
+32 182 m 563 182 l S
+0.216 0.255 0.318 rg
+BT /F1 9 Tf 40 187 Td (gpt-4.1-mini) Tj ET
+0.067 0.094 0.153 rg
+BT /F2 9 Tf 473 187 Td ($0.013764800) Tj ET
+0.898 0.906 0.922 RG
+32 164 m 563 164 l S
+0.216 0.255 0.318 rg
+BT /F1 9 Tf 40 169 Td (gpt-4.1-clientA) Tj ET
+0.067 0.094 0.153 rg
+BT /F2 9 Tf 473 169 Td ($0.000916000) Tj ET
+1.000 1.000 1.000 rg
+32 146 531 18 re f
+0.898 0.906 0.922 RG
+32 146 m 563 146 l S
+0.216 0.255 0.318 rg
+BT /F1 9 Tf 40 151 Td (gemini-2.5-flash-lite) Tj ET
+0.067 0.094 0.153 rg
+BT /F2 9 Tf 473 151 Td ($0.000562500) Tj ET
+0.067 0.094 0.153 rg
+BT /F2 12 Tf 32 126 Td (Cost by MCP Server) Tj ET
+0.980 0.980 0.988 rg
+32 58 531 56 re f
+0.886 0.910 0.941 rg
+32 94 531 20 re f
+0.122 0.161 0.216 rg
+BT /F2 9 Tf 40 100 Td (Category) Tj ET
+0.122 0.161 0.216 rg
+BT /F2 9 Tf 473 100 Td (Cost) Tj ET
+0.898 0.906 0.922 RG
+32 76 m 563 76 l S
+0.216 0.255 0.318 rg
+BT /F1 9 Tf 40 81 Td (sequential-thinking) Tj ET
+0.067 0.094 0.153 rg
+BT /F2 9 Tf 473 81 Td ($0.006596000) Tj ET
+1.000 1.000 1.000 rg
+32 58 531 18 re f
+0.898 0.906 0.922 RG
+32 58 m 563 58 l S
+0.216 0.255 0.318 rg
+BT /F1 9 Tf 40 63 Td (Sequential Thinking) Tj ET
+0.067 0.094 0.153 rg
+BT /F2 9 Tf 473 63 Td ($0.000008000) Tj ET
+endstream
+endobj
+6 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents 5 0 R >>
+endobj
+xref
+0 7
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000185 00000 n 
+0000000260 00000 n 
+0000005793 00000 n 
+trailer
+<< /Size 7 /Root 1 0 R >>
+startxref
+5929
+%%EOF

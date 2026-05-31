@@ -1,0 +1,110 @@
+---
+title: Invoices
+icon: Receipt
+description: Preview usage costs and export invoice files from the organisation UI.
+---
+
+# Invoices
+
+Invoices help organisation users review usage costs from the UI. The page uses usage already recorded by Odock. It does not call the runtime gateway.
+
+Use this page to choose a billing period, narrow the view by team or API key, review the cost summary, and export a CSV or PDF.
+
+## Before You Start
+
+Make sure your organisation has usage in the period you want to review.
+
+Make sure model and MCP pricing are configured. If pricing is missing, request counts may appear but costs can be incomplete.
+
+## Preview An Invoice
+
+<Steps>
+
+<Step>
+Open your organisation workspace.
+</Step>
+
+<Step>
+Open **Invoices** from the sidebar.
+</Step>
+
+<Step>
+Choose a **Period**.
+
+Use a preset such as **This month**, **Last month**, or **Last 30 days**.
+</Step>
+
+<Step>
+For a custom period, choose the start and end dates, then click **Apply**.
+</Step>
+![Open Invoice Tool](/gifs/invoice-select.gif)
+
+</Steps>
+
+
+<Steps>
+
+<Step>
+Optional: select one or more teams to focus on team usage.
+</Step>
+
+<Step>
+Optional: select one or more API keys to focus on specific key usage.
+</Step>
+
+<Step>
+Review the summary cards at the top of the page.
+</Step>
+
+<Step>
+Review the tables for team, API key, model, and MCP usage.
+</Step>
+
+</Steps>
+
+![Filter inInvoice Tool](/gifs/invoice-select.gif)
+
+## Export An Invoice
+
+<Steps>
+
+<Step>
+Set the period and filters you want to include.
+</Step>
+
+<Step>
+Review the preview.
+</Step>
+
+<Step>
+Click `Download PDF Invoice` for a readable invoice summary.
+</Step>
+
+<Step>
+Or : Click  `Download CSV (all records)` for detailed records.
+</Step>
+
+![Download PDF Invoice](/gifs/invoice-pdf.gif)
+
+<Step>
+Review the PDF invoice by billable unit.
+</Step>
+
+<iframe
+  src="/files/invoice-example.pdf"
+  width="100%"
+  height="800px"
+  style={{ border: "none" }}
+/>
+
+</Steps>
+
+
+
+## If Results Look Wrong
+
+If there is no usage, check the selected period first.
+
+If costs are missing or too low, check that model and MCP pricing are configured.
+
+If a team or API key is missing, check that it belongs to your organisation and that you have access to it.

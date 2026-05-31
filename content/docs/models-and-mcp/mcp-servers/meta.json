@@ -1,0 +1,23 @@
+{
+  "title": "MCP Servers",
+  "icon": "ServerCog",
+  "pages": [
+    "index",
+    "streamable-http-transport",
+    "sse-transport",
+    "stdio-transport",
+    "authentication",
+    "pricing",
+    "security",
+    "add-from-trusted-catalog",
+    "add-manually",
+    "call-through-odock",
+    "review-transport",
+    "review-security-access",
+    "edit-governance",
+    "edit-pricing",
+    "update-pricing-from-catalog",
+    "grant-mcp-to-api-key",
+    "grant-api-keys-to-mcp-server"
+  ]
+}

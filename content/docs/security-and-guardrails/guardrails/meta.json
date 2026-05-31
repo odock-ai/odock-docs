@@ -1,0 +1,12 @@
+{
+  "title": "Guardrails",
+  "icon": "Shield",
+  "pages": [
+    "index",
+    "policy-inheritance",
+    "runtime-enforcement",
+    "guardrail-modules",
+    "plugin-gates",
+    "custom-guardrails"
+  ]
+}

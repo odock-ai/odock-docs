@@ -1,0 +1,29 @@
+---
+title: Quota metrics
+description: Understand the metrics that quotas can limit.
+---
+
+# Quota metrics
+
+Each quota limits one metric.
+
+| Metric | Meaning | Common use |
+| --- | --- | --- |
+| `REQUESTS` | Number of gateway requests. | Limit request volume. |
+| `TOKENS` | Total tokens. | Limit total model usage. |
+| `TOKENS_IN` | Input tokens. | Limit prompt or input volume. |
+| `TOKENS_OUT` | Output tokens. | Limit generated output. |
+| `ERRORS` | Error count. | Stop noisy or failing workloads. |
+| `LATENCY_MS` | Latency value. | Track or constrain latency-related consumption depending on deployment behavior. |
+
+## Metric Selection
+
+Use `REQUESTS` for traffic envelopes.
+
+Use `TOKENS`, `TOKENS_IN`, or `TOKENS_OUT` for model usage envelopes.
+
+Use `ERRORS` for broken workflows that should stop after repeated failures.
+
+## Usage Records
+
+Quota settlement is based on request-level usage evidence: status, token counts, latency, and cost. See [Usage Monitoring](/docs/observability/usage-records).

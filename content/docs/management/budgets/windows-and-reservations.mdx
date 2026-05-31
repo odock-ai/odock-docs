@@ -1,0 +1,52 @@
+---
+title: Windows and reservations
+description: How budget schedules, windows, reserved cost, and used cost work.
+---
+
+# Windows and reservations
+
+A budget schedule creates windows. Each window tracks:
+
+- used cost,
+- reserved cost,
+- start and end time,
+- currency.
+
+| Schedule field | Meaning |
+| --- | --- |
+| Start At | When the budget schedule begins. |
+| Period | `DAILY`, `WEEKLY`, `MONTHLY`, or `QUARTERLY`. |
+| Timezone | Timezone used for window boundaries. |
+| End At | Optional time after which the budget is inactive. |
+| Rollover | Whether unused capacity can roll forward when supported. |
+| Active | Whether the budget is enforced. |
+
+```mermaid
+flowchart LR
+  SCHEDULE["Budget schedule"]
+  W1["Window 1<br/>used + reserved"]
+  W2["Window 2<br/>used + reserved"]
+  W3["Window 3<br/>used + reserved"]
+
+  SCHEDULE --> W1 --> W2 --> W3
+```
+
+## Reservation Lifecycle
+
+```mermaid
+flowchart TD
+  ESTIMATE["Estimate request cost"]
+  RESERVE["Reserve cost in each matching window"]
+  CALL["Call upstream"]
+  ACTUAL["Read actual usage and cost"]
+  SETTLE["Move actual cost to used"]
+  RELEASE["Release unused reservation"]
+
+  ESTIMATE --> RESERVE --> CALL --> ACTUAL --> SETTLE --> RELEASE
+```
+
+Reserved cost means capacity is held for in-flight or unreconciled requests. Used cost means the request has been settled with actual usage.
+
+## Why Reservations Matter
+
+Without reservations, many concurrent requests could all pass the same budget check before any usage record is written. Reservations prevent that race by reducing available budget before the upstream call starts.

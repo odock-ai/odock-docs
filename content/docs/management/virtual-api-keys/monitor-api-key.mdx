@@ -1,0 +1,59 @@
+---
+title: Monitor an API key
+icon: ListChecks
+description: Review usage, budgets, quotas, routing, and key health.
+---
+
+# Monitor an API key
+
+Use the key detail page to understand what a runtime credential is doing.
+
+<Steps>
+
+<Step>
+Open **API Keys**.
+</Step>
+
+<Step>
+Open the key you want to inspect.
+</Step>
+
+<Step>
+Review key details: type, owner, expiry, timezone, revoked state, revealed state, and rotation count.
+</Step>
+
+<Step>
+Review **Model Access** and **MCP Access**.
+</Step>
+
+<Step>
+Review **Rotation History** to see previous masked secrets, previous expiry, new expiry, rotation date, and rotating user.
+</Step>
+
+<Step>
+Review **Usage Records** for requests attributed to this key.
+</Step>
+
+<Step>
+Open individual usage records to inspect provider, model, status, latency, token breakdown, cost, and routing metadata.
+</Step>
+
+<Step>
+Review **Budgets** and **Quotas** attached to the key.
+</Step>
+
+</Steps>
+
+![Apikeys page review](/gifs/apikeys-review.gif)
+
+## Questions This Page Answers
+
+| Question | Where to look |
+| --- | --- |
+| Is this key still usable? | Revoked, expiry, and timezone fields. |
+| Has this key been rotated? | Rotations field and Rotation History section. |
+| Can I reveal the current secret? | Revealed field and Reveal API Key card. |
+| What can this key call? | Model Access and MCP Access. |
+| Is the key near a limit? | Budgets and Quotas sections. |
+| What did it cost? | Usage Records and record billing details. |
+| Did routing happen? | Usage record Routing card. |

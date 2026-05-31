@@ -1,0 +1,12 @@
+{
+  "title": "Plugins",
+  "icon": "Blocks",
+  "pages": [
+    "index",
+    "architecture",
+    "plugin-lifecycle",
+    "marketplace",
+    "evaluate-plugin",
+    "request-custom-plugin"
+  ]
+}

@@ -1,0 +1,65 @@
+---
+title: Usage Records table
+description: Filter, search, sort, and open individual gateway requests.
+---
+
+# Usage Records table
+
+The table below the analytics card lists individual requests. Each row links to a detail page for that call.
+
+
+## Columns
+
+| Column | Reads |
+| --- | --- |
+| **Timestamp** | When the request completed. |
+| **Request** | Gateway request id — the same id returned in the response headers. |
+| **Provider** | Resolved provider. |
+| **Model** | Display name of the model that served the request. |
+| **API Key** | The virtual API key that signed the request. |
+| **Team / User** | Owning team or user when the key is scoped to one. |
+| **HTTP Status** | Final status returned to your application. |
+| **Latency** | Total wall-clock latency in milliseconds. |
+| **Tokens** | Billable tokens. |
+| **Cost** | Cost in USD. |
+
+Sort the table by clicking a column header. Filters from the analytics card apply to the table as well — they share state.
+
+## Workflow
+
+<Steps>
+
+<Step>
+Choose a **Date range** and narrow the filters until the slice you want is in view.
+</Step>
+
+<Step>
+Sort by **Timestamp** descending to find the last calls, or by **Cost** to find the most expensive ones.
+</Step>
+
+<Step>
+Click a row to open the [record detail page](/docs/observability/usage-records/record-details).
+</Step>
+
+
+
+</Steps>
+![Usage Records table with active filters](/gifs/obs-usagerecords-table.gif)
+
+## Where Else This Table Appears
+
+The same table is embedded with a prefilled filter on:
+
+- **API Keys** — the key detail page shows requests attributed to that key. See [Monitor an API key](/docs/management/virtual-api-keys/monitor-api-key).
+- **Budgets** — the budget detail page lists requests counted against the active window. See [Monitor a budget](/docs/management/budgets/monitor-budget).
+- **Quotas** — the quota detail page lists requests counted toward the metric window. See [Monitor a quota](/docs/management/quotas/monitor-quota).
+
+## Tips
+
+<Callout type="tip">
+Paste the request id from an application log into the **Search** field to jump straight to that call — useful when a user reports a problem and you only have the id.
+</Callout>
+
+<Callout type="warning">
+Records appear with a small delay after the request finishes. If a fresh request is not in the table yet, press **Refresh** above the table.
+</Callout>

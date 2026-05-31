@@ -1,0 +1,61 @@
+---
+title: Configure Model Policies
+icon: ListChecks
+description: Add resource-specific policy limits to a model.
+---
+
+# Configure Model Policies
+
+Use model policies when a model needs a stronger runtime envelope because it is expensive, sensitive, slow, or intended for a narrow workload.
+
+<Steps>
+
+<Step>
+Open **Models** in your organisation.
+
+</Step>
+
+<Step>
+Open the model detail page.
+
+Confirm the model name, slug, provider, provider key, pricing, and access grants are correct.
+
+For model concepts, see [Models](/docs/models-and-mcp/models).
+</Step>
+
+<Step>
+Find the **Policies** card and click **Edit**.
+
+</Step>
+
+<Step>
+Set model-specific limits.
+
+Common model controls:
+
+| Field | Why use it |
+| --- | --- |
+| Tokens per minute | Protects high-cost or limited-capacity models. |
+| Max tokens per request | Prevents unusually large generations. |
+| Requests per minute | Smooths traffic to slower or rate-limited providers. |
+| Max concurrency | Prevents too many simultaneous calls to this model. |
+</Step>
+
+<Step>
+Save policies.
+
+</Step>
+
+<Step>
+Test through an API key that has model access.
+
+The request must pass the organisation, team if present, API key, and model policies. If any one scope blocks, the request stops before or during gateway enforcement.
+</Step>
+
+</Steps>
+
+## Why This Works
+
+Model policies are added after Odock resolves the requested model. That means they are useful for resource-specific limits, but they are not a replacement for API key access grants.
+
+For calling models through Odock, see [Call a model through Odock](/docs/models-and-mcp/models/call-through-odock).

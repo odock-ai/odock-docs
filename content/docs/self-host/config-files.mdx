@@ -1,0 +1,41 @@
+---
+title: Configuration Areas
+icon: FileCog
+---
+
+# Configuration Areas
+
+Self-hosting requires a few categories of runtime configuration. The important point is not the exact file format, but the kind of information the platform needs in order to run safely and predictably.
+
+## Core Configuration Areas
+
+Most deployments need configuration for:
+
+- gateway runtime behavior
+- operator UI runtime values
+- database and runtime service connectivity
+- encryption and secret management
+- plugin declarations when custom extensions are used
+- logging and monitoring behavior
+- optional observability retention and storage settings
+
+## What Teams Usually Configure
+
+| Area | Purpose |
+| --- | --- |
+| Runtime connectivity | How the gateway reaches its database, support services, and upstream systems. |
+| UI exposure | Which URLs, domains, or public endpoints operators use to access the platform. |
+| Secrets and keys | How provider credentials and encrypted platform values are protected. |
+| Feature behavior | Which extensions, plugins, or optional platform features are enabled. |
+| Logging and monitoring | How operators collect operational evidence and monitor platform health. |
+
+## Security Considerations
+
+Provider key encryption requires matching UI public key variables and server private key variables.
+
+In practice, teams should think about configuration in two groups:
+
+- connectivity and exposure settings that define how the platform runs
+- secrets and encryption settings that define how the platform protects sensitive information
+
+If you are evaluating the self-hosted model, contact us and we can explain the configuration areas in more detail for your environment.

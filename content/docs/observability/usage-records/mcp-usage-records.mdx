@@ -1,0 +1,56 @@
+---
+title: MCP usage records
+description: How MCP tool calls appear in Usage Records.
+---
+
+# MCP usage records
+
+MCP calls produce a usage record alongside LLM calls. They appear in the same table, listed with `provider = mcp`. The detail page is the same shape as for an LLM record, with the cards adjusted for MCP context.
+
+
+## What Is Extra For MCP
+
+A paired MCP record stores the tool-level surface:
+
+| Field | Reads |
+| --- | --- |
+| **MCP Server** | The MCP server the request was routed to. |
+| **Tool** | The tool invoked by the call. |
+| **RPC Method** | The JSON-RPC method — for example `tools/call`, `tools/list`. |
+| **Transport** | The active transport: HTTP, SSE, or STDIO. |
+| **Tool call count** | How many tool calls the request executed. A single MCP request can run more than one. |
+| **Bytes** | Request and response payload sizes. MCP usage is measured in bytes, not tokens. |
+
+The Tokens card on an MCP record is labelled to reflect bytes rather than tokens.
+
+## Finding MCP Calls
+
+<Steps>
+
+<Step>
+Open **Usage Records**.
+</Step>
+
+<Step>
+Set the **Provider** filter to **mcp**.
+</Step>
+
+<Step>
+Filter by **Date range** or **API Key** as needed.
+</Step>
+
+<Step>
+Click a row to open the detail page.
+</Step>
+
+![Usage Records for MCP call](/images/obs-usage-mcp.png)
+
+</Steps>
+
+For tool-level trends across the organisation, the [Traffic Analytics page MCP tab](/docs/observability/traffic-analytics/explore-mcp) groups records by server and tool.
+
+## Tips
+
+<Callout type="tip">
+The **Cost** column on an MCP row is the unified figure for budgets and quotas. The MCP-specific cost contribution shown inside the breakdown is included in that total — do not sum both.
+</Callout>

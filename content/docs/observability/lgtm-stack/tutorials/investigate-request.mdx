@@ -1,0 +1,80 @@
+---
+title: Investigate one request across usage, traces, and logs
+description: Follow a single request from the Odock UI into Tempo and Loki.
+---
+
+# Investigate one request across usage, traces, and logs
+
+Use this workflow when an application team gives you a request id, a failing response, or a narrow incident window and you need precise evidence.
+
+<Steps>
+
+<Step>
+Start in [Usage Records](/docs/observability/usage-records) when possible.
+
+Find the request row, then open the [record detail page](/docs/observability/usage-records/record-details).
+
+</Step>
+
+<Step>
+Copy the key identifiers from the record.
+
+The useful fields are:
+
+- `Request ID`
+- `Trace ID` if present
+- provider and model
+- timestamp and latency
+- routing outcome
+</Step>
+
+<Step>
+Open the matching trace in Grafana or Tempo.
+
+If the UI exposes a direct trace link, use it. Otherwise open Tempo and search for the copied `Trace ID`.
+
+</Step>
+
+<Step>
+Inspect the span tree.
+
+Start with:
+
+- `http.request` for total duration
+- `gateway.route.resolve` for routing behavior
+- `gateway.provider.request` for upstream latency or errors
+- `gateway.plugin.execute` for plugin overhead
+- `gateway.security.module` for allow or block decisions
+
+If the trace is missing, remember that traces may be sampled. Continue with logs and the usage record.
+</Step>
+
+<Step>
+Open Loki and filter by `request_id`.
+
+This usually gives the fastest textual evidence for the same request across gateway stages.
+
+</Step>
+
+<Step>
+Compare the three surfaces before drawing a conclusion.
+
+Use:
+
+- Usage Records for the exact final outcome, tokens, and cost
+- Traces for path and latency inside the gateway
+- Logs for detailed stage-by-stage events and error text
+</Step>
+
+</Steps>
+
+## Common Conclusions
+
+| Evidence pattern | Likely conclusion |
+| --- | --- |
+| Usage record shows reroute, trace shows repeated provider attempts | Upstream provider instability or route fallback |
+| Trace shows high `gateway.plugin.execute` duration | Plugin overhead inside the gateway |
+| Logs show `decision=block` in a security module | Expected enforcement, not an infrastructure outage |
+| Usage record exists but no trace is found | Trace sampling or trace pipeline issue |
+
+Next, if the issue looks provider-specific, continue with [Investigate provider latency or errors](/docs/observability/lgtm-stack/tutorials/investigate-provider-health).

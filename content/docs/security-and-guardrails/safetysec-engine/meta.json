@@ -1,0 +1,10 @@
+{
+  "title": "Security Engine",
+  "icon": "ScanEye",
+  "pages": [
+    "index",
+    "workflow",
+    "modules",
+    "create-module"
+  ]
+}

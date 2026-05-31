@@ -1,0 +1,482 @@
+---
+title: Call a model through Odock
+icon: ListChecks
+description: Use a configured Odock model from curl, Python, LangChain, TypeScript, native provider SDKs, and the unified model endpoint.
+---
+
+import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
+
+# Call a model through Odock
+
+This tutorial shows how to call a configured model through the Odock gateway from an application.
+
+The important rule is simple: the application sends the **Odock model name**, not the upstream provider slug unless those two values are the same.
+
+For example, if you created a variant model named `gpt-4.1-clientA` that points to the upstream slug `gpt-4.1`, the application sends:
+
+```json
+{
+  "model": "gpt-4.1-clientA"
+}
+```
+
+Odock resolves that model record, verifies the virtual API key has access, applies policies, budgets, quotas, guardrails, and routing, calls the upstream provider with the configured provider key, and records usage.
+
+## Before You Start
+
+You need:
+
+- an active virtual API key in Odock
+- Model Access granted for the model you want to call
+- a gateway URL
+- a model record that points to an enabled provider and provider key
+
+Set these environment variables:
+
+```bash
+export ODOCK_GATEWAY_URL="https://api.odock.ai"
+export ODOCK_BASE_URL="$ODOCK_GATEWAY_URL/v1"
+export ODOCK_API_KEY="odock_virtual_api_key"
+export ODOCK_MODEL="gpt-4.1-clientA"
+export ODOCK_EMBEDDING_MODEL="text-embedding-3-small"
+```
+
+Use your real Odock model name for `ODOCK_MODEL`. If you have not created a model yet, start with [Add models from the catalog](/docs/models-and-mcp/models/add-models-from-catalog) or [Add a model manually](/docs/models-and-mcp/models/add-model-manually). If the model is client or project-specific, see [Add a variant model](/docs/models-and-mcp/models/add-variant-model).
+
+For access setup, see [Grant a model to an API key](/docs/models-and-mcp/models/grant-model-to-api-key). For endpoint behavior, see [Endpoints](/docs/models-and-mcp/endpoints), [Native Models call](/docs/usage/native-models-call), and [Unified Multi Model Endpoint call](/docs/usage/unified-multi-model-endpoint-call).
+
+For client library details, see the official [OpenAI Chat Completions reference](https://platform.openai.com/docs/api-reference/chat/create), [LangChain ChatOpenAI integration](https://docs.langchain.com/oss/python/integrations/chat/openai), and [AI SDK OpenAI provider reference](https://ai-sdk.dev/providers/ai-sdk-providers/openai).
+
+## Choose The Right Endpoint
+
+Use the endpoint family that matches the model's configured provider type.
+
+| Use case | Endpoint | Client style |
+| --- | --- | --- |
+| OpenAI-compatible chat | `/v1/chat/completions` | OpenAI SDK, LangChain ChatOpenAI, direct HTTP |
+| OpenAI-compatible Responses API | `/v1/responses` | OpenAI SDK, direct HTTP |
+| OpenAI-compatible embeddings | `/v1/embeddings` | OpenAI SDK, vector pipelines |
+| Anthropic-compatible messages | `/v1/messages` | Anthropic SDK or HTTP clients |
+| Gemini-compatible generation | `/v1beta/models/{model}:generateContent` | Google GenAI SDK or HTTP clients |
+| vLLM-compatible models | `/v1/vllm/...` | vLLM-compatible HTTP clients |
+| Provider-neutral chat | `/v1/llm/chat` | One Odock endpoint across configured providers |
+
+For the smallest migration from an OpenAI-compatible application, set the SDK base URL to `https://api.odock.ai/v1` and replace the provider key with the Odock virtual API key.
+
+Use `/v1/llm/chat` when the application should be less tied to a provider family or when you want Odock routing to choose between configured models.
+
+
+
+## Verify With curl
+
+Use curl first. It proves the model name, API key, access grant, and gateway endpoint are correct before you debug an SDK.
+
+<Steps>
+
+<Step>
+Call an OpenAI-compatible chat model.
+
+```bash
+curl "$ODOCK_BASE_URL/chat/completions" \
+  -H "Authorization: Bearer $ODOCK_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "'"$ODOCK_MODEL"'",
+    "messages": [
+      {"role": "user", "content": "Explain model access in Odock in two sentences."}
+    ],
+    "temperature": 0.2,
+    "max_tokens": 160
+  }'
+```
+</Step>
+
+<Step>
+Call the same model through the provider-neutral endpoint.
+
+```bash
+curl "$ODOCK_BASE_URL/llm/chat" \
+  -H "Authorization: Bearer $ODOCK_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "'"$ODOCK_MODEL"'",
+    "messages": [
+      {"role": "user", "content": "Explain model access in Odock in two sentences."}
+    ],
+    "temperature": 0.2,
+    "max_tokens": 160
+  }'
+```
+</Step>
+
+<Step>
+Open **Usage Records** and confirm the request appears with the expected model, provider, status, latency, token usage, and cost.
+
+
+![Model usage](/images/models-usage.png)
+
+</Step>
+
+</Steps>
+
+## Use The OpenAI Python SDK
+
+Use this pattern when the model is configured with an OpenAI-compatible provider family. The application points the OpenAI SDK at Odock instead of the upstream provider.
+
+```python
+import os
+from openai import OpenAI
+
+client = OpenAI(
+    api_key=os.environ["ODOCK_API_KEY"],
+    base_url=os.environ.get("ODOCK_BASE_URL", "https://api.odock.ai/v1"),
+)
+
+response = client.chat.completions.create(
+    model=os.environ.get("ODOCK_MODEL", "gpt-4.1-clientA"),
+    messages=[
+        {
+            "role": "user",
+            "content": "Write a short rollout note for a gateway migration.",
+        }
+    ],
+    temperature=0.2,
+    max_tokens=180,
+)
+
+print(response.choices[0].message.content)
+```
+
+The `api_key` is the Odock virtual API key. Odock uses the configured provider key on the server side.
+
+## Stream With The OpenAI Python SDK
+
+Use streaming when your UI or job runner should receive tokens as they are produced.
+
+```python
+import os
+from openai import OpenAI
+
+client = OpenAI(
+    api_key=os.environ["ODOCK_API_KEY"],
+    base_url=os.environ.get("ODOCK_BASE_URL", "https://api.odock.ai/v1"),
+)
+
+stream = client.chat.completions.create(
+    model=os.environ.get("ODOCK_MODEL", "gpt-4.1-clientA"),
+    messages=[
+        {"role": "user", "content": "Give three reasons to use model variants."}
+    ],
+    stream=True,
+    max_tokens=220,
+    extra_body={"include_usage": True},
+)
+
+for chunk in stream:
+    delta = chunk.choices[0].delta
+    if delta.content:
+        print(delta.content, end="", flush=True)
+
+print()
+```
+
+Streaming calls still pass through the same access checks, policies, budgets, quotas, and usage recording.
+
+## Use Python HTTPX
+
+Use direct HTTP when you do not want an SDK dependency or when you are integrating Odock into an existing backend service.
+
+```python
+import os
+import httpx
+
+base_url = os.environ.get("ODOCK_BASE_URL", "https://api.odock.ai/v1")
+api_key = os.environ["ODOCK_API_KEY"]
+model = os.environ.get("ODOCK_MODEL", "gpt-4.1-clientA")
+
+response = httpx.post(
+    f"{base_url}/llm/chat",
+    headers={
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json",
+    },
+    json={
+        "model": model,
+        "messages": [
+            {"role": "user", "content": "Explain usage recording in Odock."}
+        ],
+        "temperature": 0.2,
+        "max_tokens": 180,
+    },
+    timeout=60.0,
+)
+
+response.raise_for_status()
+data = response.json()
+print(data["content"])
+```
+
+The unified response is normalized by Odock. Native endpoints return the native provider-compatible shape.
+
+## Use LangChain Python
+
+Use LangChain when the Odock model should be part of a chain, agent, retrieval flow, or tool-calling workflow.
+
+Install:
+
+```bash
+pip install langchain langchain-openai
+```
+
+Example:
+
+```python
+import os
+
+from langchain_core.messages import HumanMessage
+from langchain_openai import ChatOpenAI
+
+llm = ChatOpenAI(
+    model=os.environ.get("ODOCK_MODEL", "gpt-4.1-clientA"),
+    api_key=os.environ["ODOCK_API_KEY"],
+    base_url=os.environ.get("ODOCK_BASE_URL", "https://api.odock.ai/v1"),
+    temperature=0.2,
+    max_tokens=180,
+)
+
+response = llm.invoke(
+    [
+        HumanMessage(
+            content="Explain how Odock separates application keys from provider keys."
+        )
+    ]
+)
+
+print(response.content)
+```
+
+LangChain sees an OpenAI-compatible chat model. Odock still resolves the Odock model name and records usage under the configured model.
+
+## Use TypeScript With The OpenAI SDK
+
+Use this pattern in Node.js services, workers, and Next.js server code.
+
+Install:
+
+```bash
+npm install openai
+```
+
+Example:
+
+```ts
+import OpenAI from "openai";
+
+const client = new OpenAI({
+  apiKey: process.env.ODOCK_API_KEY!,
+  baseURL: process.env.ODOCK_BASE_URL ?? "https://api.odock.ai/v1",
+});
+
+const response = await client.chat.completions.create({
+  model: process.env.ODOCK_MODEL ?? "gpt-4.1-clientA",
+  messages: [
+    {
+      role: "user",
+      content: "Write a short support reply about a completed deployment.",
+    },
+  ],
+  temperature: 0.2,
+  max_tokens: 180,
+});
+
+console.log(response.choices[0]?.message?.content);
+```
+
+For browser applications, call your own backend first. Do not expose the Odock virtual API key in browser JavaScript.
+
+## Use The AI SDK
+
+Use the AI SDK when your TypeScript application already uses `generateText`, `streamText`, or AI SDK UI patterns.
+
+Install:
+
+```bash
+npm install ai @ai-sdk/openai
+```
+
+Example:
+
+```ts
+import { generateText } from "ai";
+import { createOpenAI } from "@ai-sdk/openai";
+
+const odock = createOpenAI({
+  apiKey: process.env.ODOCK_API_KEY!,
+  baseURL: process.env.ODOCK_BASE_URL ?? "https://api.odock.ai/v1",
+});
+
+const result = await generateText({
+  model: odock(process.env.ODOCK_MODEL ?? "gpt-4.1-clientA"),
+  prompt: "Summarize why model pricing matters in Odock.",
+  temperature: 0.2,
+});
+
+console.log(result.text);
+```
+
+This uses Odock as an OpenAI-compatible gateway. If your model is not OpenAI-compatible, use the matching native endpoint or the provider-neutral `/v1/llm/chat` HTTP pattern.
+
+## Call Embeddings
+
+Use embeddings when the configured model type is `embeddings` and the provider supports an embeddings endpoint.
+
+<Tabs items={["OpenAI SDK", "curl"]}>
+<Tab>
+
+```python
+import os
+from openai import OpenAI
+
+client = OpenAI(
+    api_key=os.environ["ODOCK_API_KEY"],
+    base_url=os.environ.get("ODOCK_BASE_URL", "https://api.odock.ai/v1"),
+)
+
+response = client.embeddings.create(
+    model=os.environ.get("ODOCK_EMBEDDING_MODEL", "text-embedding-3-small"),
+    input="Odock records usage and cost for embeddings traffic.",
+    encoding_format="float",
+)
+
+print(len(response.data[0].embedding))
+```
+
+</Tab>
+<Tab>
+
+```bash
+curl "$ODOCK_BASE_URL/embeddings" \
+  -H "Authorization: Bearer $ODOCK_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "'"$ODOCK_EMBEDDING_MODEL"'",
+    "input": "Odock records usage and cost for embeddings traffic.",
+    "encoding_format": "float"
+  }'
+```
+
+</Tab>
+</Tabs>
+
+Embeddings pricing is tracked separately from chat input and output tokens. For pricing fields and calculation details, see [Model Pricing](/docs/models-and-mcp/models/model-pricing).
+
+## Call Anthropic-Compatible Models
+
+Use this only when the Odock model is configured with an Anthropic-compatible provider.
+
+```bash
+curl "$ODOCK_GATEWAY_URL/v1/messages" \
+  -H "Authorization: Bearer $ODOCK_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "'"$ODOCK_MODEL"'",
+    "max_tokens": 180,
+    "temperature": 0.2,
+    "messages": [
+      {"role": "user", "content": "Explain provider-family matching in Odock."}
+    ]
+  }'
+```
+
+The Anthropic SDK expects a base URL without `/v1`; direct HTTP callers include `/v1/messages` in the request URL.
+
+## Call Gemini-Compatible Models
+
+Use this only when the Odock model is configured with a Gemini-compatible provider.
+
+```bash
+curl "$ODOCK_GATEWAY_URL/v1beta/models/$ODOCK_MODEL:generateContent" \
+  -H "Authorization: Bearer $ODOCK_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "contents": [
+      {
+        "role": "user",
+        "parts": [
+          {"text": "Explain how Odock resolves model names."}
+        ]
+      }
+    ],
+    "generationConfig": {
+      "temperature": 0.2,
+      "maxOutputTokens": 180
+    }
+  }'
+```
+
+The `{model}` path segment is still the Odock model name.
+
+## Call vLLM-Compatible Models
+
+Use this only when the Odock model is configured with a vLLM-compatible provider.
+
+```bash
+curl "$ODOCK_GATEWAY_URL/v1/vllm/chat/completions" \
+  -H "Authorization: Bearer $ODOCK_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "'"$ODOCK_MODEL"'",
+    "messages": [
+      {"role": "user", "content": "Explain quota enforcement."}
+    ],
+    "max_tokens": 180,
+    "stream": false
+  }'
+```
+
+vLLM endpoints preserve vLLM-compatible request and response shapes after Odock resolves access, provider configuration, and runtime governance.
+
+## Use Model Variants In Applications
+
+Model variants let one upstream model behave like separate products inside Odock.
+
+For example:
+
+| Odock model name | Upstream slug | Why use it |
+| --- | --- | --- |
+| `gpt-4.1-clientA` | `gpt-4.1` | Client-specific access, pricing, usage, or policy controls. |
+| `support-fast` | `gpt-4.1-mini` | Stable app name that can move to another upstream slug later. |
+| `finance-reviewed` | `claude-sonnet-4-5` | Stricter budgets, quotas, and guardrails for a sensitive project. |
+
+The application only needs to change the `model` value:
+
+```bash
+export ODOCK_MODEL="gpt-4.1-clientA"
+```
+
+Usage records, budgets, quotas, and pricing follow the Odock model name that was requested.
+
+## Production Checklist
+
+- Keep Odock virtual API keys server-side.
+- Grant Model Access only to the API keys that need the model.
+- Use model variants for client, project, environment, or pricing separation.
+- Configure [Model Pricing](/docs/models-and-mcp/models/model-pricing) before production traffic.
+- Add [budgets](/docs/management/budgets) or [quotas](/docs/management/quotas) for spend and usage control.
+- Review [Guardrails](/docs/security-and-guardrails/guardrails) when prompts or outputs need additional safety controls.
+- Test one unary call and one streaming call before switching an application.
+- Review [Usage Monitoring](/docs/observability/usage-records) after the first calls.
+
+## Troubleshooting
+
+| Symptom | What to check |
+| --- | --- |
+| `401 Unauthorized` | Confirm the request uses an active Odock virtual API key. |
+| `403 Forbidden` | Confirm the virtual API key has Model Access for the requested model. |
+| `model not found` | Confirm the request uses the Odock model name, not the wrong upstream slug. |
+| `provider_not_allowed` | Confirm the endpoint family matches the model's configured provider type. |
+| Empty or missing cost | Confirm pricing exists for the model and token type. |
+| Budget or quota error | Review API key, team, user, and organisation budgets and quotas. |
+| No usage record | Confirm the application calls Odock, not the upstream provider directly. |
+
+For the full error reference, see [Gateway Errors](/docs/usage/errors).

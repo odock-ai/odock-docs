@@ -1,0 +1,14 @@
+{
+  "title": "Traffic Analytics",
+  "icon": "LayoutDashboard",
+  "pages": [
+    "index",
+    "filters-and-scope",
+    "explore-traffic",
+    "explore-latency",
+    "explore-usage",
+    "explore-mcp",
+    "explore-plugins",
+    "trace-a-request"
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "title": "Security & Guardrails",
+  "icon": "ShieldCheck",
+  "pages": [
+    "index",
+    "guardrails",
+    "safetysec-engine",
+    "tutorials"
+  ]
+}

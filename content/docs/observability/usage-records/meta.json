@@ -1,0 +1,11 @@
+{
+  "title": "Usage Records",
+  "icon": "ChartNoAxesCombined",
+  "pages": [
+    "index",
+    "usage-analytics",
+    "usage-records-table",
+    "record-details",
+    "mcp-usage-records"
+  ]
+}

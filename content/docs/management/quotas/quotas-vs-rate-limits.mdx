@@ -1,0 +1,27 @@
+---
+title: Quotas vs rate limits
+description: Decide whether to use quotas or key policies for a limit.
+---
+
+# Quotas vs rate limits
+
+Quotas and rate limits both protect runtime traffic, but they operate at different time scales.
+
+| Control | Where configured | Best for |
+| --- | --- | --- |
+| Quota | **Quotas** page or API-key Quotas section | Business windows such as daily, weekly, monthly, quarterly. |
+| Rate limit | **Policies** card on keys, organisations, models, or MCP servers | Short-term traffic shaping such as per second, per minute, payload size, or concurrency. |
+
+Use quotas for consumption envelopes.
+
+Use rate limits for abuse prevention, traffic smoothing, and protecting provider capacity.
+
+## Examples
+
+Use a quota to allow a team 1,000,000 tokens per month.
+
+Use a rate limit to allow one key 20 requests per second.
+
+Use a quota to stop a broken integration after 100 errors per day.
+
+Use a concurrency limit to prevent one agent from launching 100 parallel requests.

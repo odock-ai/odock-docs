@@ -1,0 +1,11 @@
+{
+  "title": "Tutorials",
+  "icon": "ListChecks",
+  "pages": [
+    "index",
+    "access-and-navigation",
+    "investigate-request",
+    "investigate-provider-health",
+    "review-alerts"
+  ]
+}

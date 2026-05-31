@@ -1,0 +1,91 @@
+---
+title: Configure MCP Guardrails
+icon: ListChecks
+description: Configure MCP access, tool rules, semantic filters, and policy limits.
+---
+
+# Configure MCP Guardrails
+
+MCP servers expose tools. Treat tool access as runtime capability access, especially when tools can write data, call paid APIs, or reach sensitive systems.
+
+<Steps>
+
+<Step>
+Open **MCP Servers** in your organisation.
+
+</Step>
+
+<Step>
+Open the MCP server detail page.
+
+Review the transport, authentication, enabled status, public flag, team scope, and API key scope.
+
+For transport details, see [MCP Servers](/docs/models-and-mcp/mcp-servers).
+</Step>
+
+<Step>
+Open the security and access controls.
+
+Confirm whether the server is limited by team scope or API key scope. These controls narrow where the server itself is intended to be used.
+
+</Step>
+
+<Step>
+Configure tool governance.
+
+Use **Allowed Tools** when you want an explicit allowlist. Use **Blocked Tools** when the server exposes mostly safe tools but a few high-risk ones should be denied.
+
+Example:
+
+```txt
+Allowed Tools: search,open,list_issues
+Blocked Tools: delete_repo,write_file,run_command
+```
+</Step>
+
+<Step>
+Add a semantic filter if needed.
+
+Example:
+
+```json
+{
+  "blockedKeywords": ["secret", "private key", "production token"]
+}
+```
+
+Use semantic filters as a narrow guardrail, not as the only protection for sensitive tools.
+</Step>
+
+![Configure Mcp tool governance](/gifs/guardrails-mcp-gouv.gif)
+
+<Step>
+**Configure MCP rate-limit policies**.
+
+Use the MCP policy/rate-limit card for IP rules, request rates, payload limits, and concurrency. For expensive tool servers, also configure pricing, budgets, or quotas.
+</Step>
+
+<Step>
+Grant MCP access to the API key that should call this server.
+
+The server existing in the organisation is not enough. The key needs an MCP access grant.
+
+See [Grant MCP access](/docs/management/virtual-api-keys/grant-mcp-access).
+</Step>
+
+<Step>
+Test a permitted tool and a blocked tool.
+
+The permitted tool should reach the MCP server. The blocked tool should return an MCP guardrail block before upstream execution.
+</Step>
+
+![Configure Mcp policies](/gifs/guardrails-mcp-policies.gif)
+
+</Steps>
+
+
+## Why This Works
+
+MCP guardrails combine access grants, server scope, transport/auth settings, tool rules, semantic filters, policy limits, and cost controls. Use all of them for high-risk tool servers.
+
+For deeper MCP safety concepts, see [MCP Security](/docs/models-and-mcp/mcp-servers/security).

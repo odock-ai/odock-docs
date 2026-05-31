@@ -1,0 +1,16 @@
+{
+  "title": "Documentation",
+  "pages": [
+    "index",
+    "getting-started",
+    "usage",
+    "user-management",
+    "models-and-mcp",
+    "management",
+    "security-and-guardrails",
+    "plugins",
+    "tools",
+    "observability",
+    "self-host"
+  ]
+}

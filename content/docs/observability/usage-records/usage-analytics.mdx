@@ -1,0 +1,79 @@
+---
+title: Usage Analytics
+description: The analytics card that sits above the Usage Records table.
+---
+
+# Usage Analytics
+
+The card at the top of the Usage Records page is for the *how is my organisation trending* question. It loads recent usage records, applies your filters, and renders four KPI cards plus three charts.
+
+
+## Workflow
+
+<Steps>
+
+<Step>
+Open your organisation workspace.
+</Step>
+
+<Step>
+Open **Usage Records** from the sidebar.
+</Step>
+
+<Step>
+Pick a **Date range** (7d, 30d, 90d, 12 months, or all loaded).
+</Step>
+
+![Usage Analytics card on the Usage Records page](/gifs/obs-usagechart-p1.gif)
+
+
+<Step>
+Use **Status**, **Provider**, and **Model** to narrow what the analytics consider.
+</Step>
+
+<Step>
+Use **Team**, **User**, and **API Key** to attribute the analytics to a specific principal.
+</Step>
+
+<Step>
+Pick a **Breakdown** dimension and a **Metric** to drive the bar chart.
+</Step>
+
+<Step>
+Use the **Series** dropdown on the time-series chart to toggle requests, cost, and token series.
+</Step>
+
+![Usage Analytics card on the Usage Records page](/gifs/obs-recordchart-p2.gif)
+
+
+</Steps>
+
+
+
+## What The Cards And Charts Show
+
+| Element | Reads |
+| --- | --- |
+| **Total requests** | Number of records after filters. |
+| **Total cost** | Sum of cost in USD. |
+| **Avg latency** | Mean latency in milliseconds. |
+| **Success rate** | Share of records with a 2xx/3xx status. |
+| Time-series chart | Daily trend for the selected series. |
+| Status donut | Success, error, and unknown share for the selected metric. |
+| Breakdown bar chart | Top categories for the chosen breakdown dimension. |
+
+![Usage Analytics chart](/gifs/obs-chart.gif)
+
+## Tips
+<Callout type="tip">
+The **Clear filters** button resets everything back to defaults.
+</Callout>
+
+
+<Callout type="tip">
+Set **Breakdown** to **API Key** and **Metric** to **Cost (USD)** to find the keys driving spend in the selected window. That points you at the right key to tighten with a [budget](/docs/management/budgets) or [quota](/docs/management/quotas).
+</Callout>
+
+<Callout type="tip">
+The Series choice is remembered between visits. Add the cost series alongside requests once, and it stays on for next time.
+</Callout>

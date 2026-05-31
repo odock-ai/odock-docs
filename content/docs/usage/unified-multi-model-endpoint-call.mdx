@@ -1,0 +1,308 @@
+---
+title: Unified Multi Model Endpoint call
+icon: Layers
+description: Use /v1/llm/chat as Odock's provider-neutral, OpenAI-compatible chat gateway endpoint.
+---
+
+import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
+
+# Unified Multi Model Endpoint call
+
+Use `/v1/llm/chat` when you want one gateway endpoint for chat requests across models backed by currently available or compatible providers.
+
+This endpoint accepts an OpenAI-compatible chat request shape:
+
+- `model`
+- `messages`
+- `temperature`
+- `max_tokens`
+- `top_p`
+- `tools`
+- `tool_choice`
+- `response_format`
+- `metadata`
+- `stream`
+
+It is provider-neutral. If `provider` is omitted, Odock resolves the provider from the configured model and any active routing policy. If `provider` is present, it can pin the request to `openai`, `anthropic`, `gemini`, or `vllm` when that matches the selected model configuration.
+
+For streaming, `/v1/llm/chat` returns OpenAI-compatible `chat.completion.chunk` SSE events, regardless of the upstream provider. For unary responses, it returns Odock's normalized JSON response.
+
+## Endpoint
+
+| Method | Path | Request shape | Unary response shape | Streaming response shape |
+| ------ | ---- | ------------- | -------------------- | ------------------------ |
+| `POST` | `/v1/llm/chat` | OpenAI-compatible chat request fields | Odock normalized response | OpenAI-compatible SSE chunks |
+
+## Minimal Request
+
+<Tabs items={["curl", "Python httpx", "OpenAI-style payload"]}>
+<Tab>
+
+```bash
+curl "$ODOCK_BASE_URL/llm/chat" \
+  -H "Authorization: Bearer $ODOCK_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "'"${ODOCK_MODEL:-claude-sonnet-4-5}"'",
+    "messages": [
+      {"role": "user", "content": "Explain budget enforcement."}
+    ],
+    "temperature": 0.2,
+    "max_tokens": 200
+  }'
+```
+
+</Tab>
+<Tab>
+
+```python
+import os
+import httpx
+
+base_url = os.environ.get("ODOCK_BASE_URL", "https://api.odock.ai/v1")
+api_key = os.environ["ODOCK_API_KEY"]
+model = os.environ.get("ODOCK_MODEL", "claude-sonnet-4-5")
+
+response = httpx.post(
+    f"{base_url}/llm/chat",
+    headers={
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json",
+    },
+    json={
+        "model": model,
+        "messages": [
+            {"role": "user", "content": "Explain budget enforcement."}
+        ],
+        "temperature": 0.2,
+        "max_tokens": 200,
+    },
+    timeout=60.0,
+)
+
+response.raise_for_status()
+data = response.json()
+print(data["content"])
+```
+
+</Tab>
+<Tab>
+
+```json
+{
+  "model": "claude-sonnet-4-5",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Explain budget enforcement."
+    }
+  ],
+  "temperature": 0.2,
+  "max_tokens": 200
+}
+```
+
+</Tab>
+</Tabs>
+
+## Normalized Unary Response
+
+A successful non-streaming response uses Odock's normalized provider response shape:
+
+```json
+{
+  "provider": "anthropic",
+  "model": "claude-sonnet-4-5",
+  "content": "Budget enforcement reserves expected usage before the upstream call...",
+  "stop_reason": "end_turn",
+  "input_tokens": 24,
+  "output_tokens": 48
+}
+```
+
+Optional fields can include:
+
+| Field | Meaning |
+| ----- | ------- |
+| `content_blocks` | Structured text, image, audio, refusal, or image-output blocks when the provider returns them. |
+| `tool_calls` | Normalized tool/function calls. |
+| `input_tokens` | Input token count reported by the provider or stream adapter. |
+| `output_tokens` | Output token count reported by the provider or stream adapter. |
+| `stop_reason` | Provider stop reason normalized into Odock's response object. |
+
+## Streaming
+
+For streaming, Odock writes server-sent events compatible with OpenAI chat completion chunks. This lets clients consume Anthropic or Gemini-backed streams with the same SSE loop they use for OpenAI chat streams.
+
+<Tabs items={["curl", "Python httpx"]}>
+<Tab>
+
+```bash
+curl -N "$ODOCK_BASE_URL/llm/chat" \
+  -H "Authorization: Bearer $ODOCK_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "'"${ODOCK_MODEL:-gemini-2.5-flash}"'",
+    "messages": [
+      {"role": "user", "content": "Give three routing examples."}
+    ],
+    "stream": true,
+    "include_usage": true,
+    "max_tokens": 200
+  }'
+```
+
+</Tab>
+<Tab>
+
+```python
+import json
+import os
+import httpx
+
+base_url = os.environ.get("ODOCK_BASE_URL", "https://api.odock.ai/v1")
+api_key = os.environ["ODOCK_API_KEY"]
+model = os.environ.get("ODOCK_MODEL", "gemini-2.5-flash")
+
+with httpx.stream(
+    "POST",
+    f"{base_url}/llm/chat",
+    headers={
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json",
+    },
+    json={
+        "model": model,
+        "messages": [
+            {"role": "user", "content": "Give three routing examples."}
+        ],
+        "stream": True,
+        "include_usage": True,
+        "max_tokens": 200,
+    },
+    timeout=60.0,
+) as response:
+    response.raise_for_status()
+
+    for line in response.iter_lines():
+        if not line or not line.startswith("data: "):
+            continue
+
+        data = line[6:].strip()
+        if data == "[DONE]":
+            break
+
+        chunk = json.loads(data)
+        delta = chunk["choices"][0].get("delta", {})
+        if delta.get("content"):
+            print(delta["content"], end="", flush=True)
+
+print()
+```
+
+</Tab>
+</Tabs>
+
+## Provider Selection
+
+By default, send only the `model` and let Odock resolve the provider from the model record:
+
+```json
+{
+  "model": "claude-sonnet-4-5",
+  "messages": [{"role": "user", "content": "Hello"}]
+}
+```
+
+If you need to pin the provider explicitly, include `provider`:
+
+```json
+{
+  "provider": "anthropic",
+  "model": "claude-sonnet-4-5",
+  "messages": [{"role": "user", "content": "Hello"}]
+}
+```
+
+Use provider pinning sparingly. In most applications, the model configuration and routing policy should decide the provider.
+
+## Smart Routing
+
+When organisation routing is enabled and the virtual API key has a routing policy, `/v1/llm/chat` can try candidate models across provider families. Candidate models must be configured in the same organisation and must be accessible to the API key.
+
+Typical routing policies use:
+
+| Strategy | Behavior |
+| -------- | -------- |
+| `failover` or next candidate | Try the next candidate when the current one fails with a configured failover trigger. |
+| `priority` | Try lower-priority-number candidates first. |
+| `round_robin` | Rotate traffic across equivalent candidates per API key. |
+
+Default failover triggers are `5xx` and `timeout`. Policies can also include `rate_limit` or `any`.
+
+For policy setup, see [Routing](/docs/management/routing).
+
+## Tools and Structured Content
+
+The unified request supports normalized tool fields:
+
+```json
+{
+  "model": "gpt-4.1-mini",
+  "messages": [
+    {"role": "user", "content": "Call the weather tool for Paris."}
+  ],
+  "tools": [
+    {
+      "type": "function",
+      "function": {
+        "name": "get_weather",
+        "description": "Get the weather for a city.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "city": {"type": "string"}
+          },
+          "required": ["city"]
+        }
+      }
+    }
+  ],
+  "tool_choice": {
+    "type": "function",
+    "function": {"name": "get_weather"}
+  }
+}
+```
+
+For multimodal inputs, use `content_blocks` on messages when you need structured text, image, or audio blocks:
+
+```json
+{
+  "model": "gemini-2.5-flash",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Describe this image.",
+      "content_blocks": [
+        {
+          "type": "image_url",
+          "image_url": {
+            "url": "data:image/png;base64,..."
+          }
+        }
+      ]
+    }
+  ]
+}
+```
+
+Provider support depends on the upstream model and configured provider.
+
+## Unified Errors
+
+The unified endpoint can return model lookup, model access, provider configuration, budget, quota, rate-limit, SafetySec, plugin, and upstream provider errors. Gateway-controlled errors usually use a JSON `error.code` and `error.message` body.
+
+For the full format and status-code tables, see [Gateway Errors](/docs/usage/errors).
+
+Use `/v1/llm/chat` when you want one OpenAI-compatible chat request surface with Odock-managed provider resolution. Use [Native Models call](/docs/usage/native-models-call) when a client must preserve a provider-specific response shape.

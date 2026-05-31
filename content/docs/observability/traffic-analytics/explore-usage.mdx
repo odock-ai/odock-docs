@@ -1,0 +1,43 @@
+---
+title: Usage
+description: Tokens, cost trend, and the relationship between context size and latency.
+---
+
+# Usage
+
+The Usage tab is the *what is it costing, and where do tokens go* view.
+
+![Usage tab — tokens and cost over time, tokens vs latency scatter](/gifs/obs-traffic-usage.gif)
+
+## Visualizations
+
+| Chart | Answers |
+| --- | --- |
+| **Tokens and Cost** | *Is the bill explainable?* Daily token total and cost in USD on a dual axis. |
+| **Tokens vs Latency** | *Is the bill costing user time?* Scatter where each dot is one AI request, with tokens on x and latency on y. |
+
+Tokens and Cost moving together means volume is driving spend. Cost rising with flat tokens points at a model swap or a pricing change — see [Model pricing](/docs/models-and-mcp/models/model-pricing).
+
+## Workflow
+
+<Steps>
+
+<Step>
+Open this tab when the **Tokens and Cost** KPI card on the header shows growth.
+</Step>
+
+<Step>
+Confirm the two series rise together. If they diverge, switch the Usage Records breakdown to **Model** to find which model is responsible.
+</Step>
+
+<Step>
+Look at **Tokens vs Latency** for a new high-token, high-latency cluster — that is usually a context-window change in an application.
+</Step>
+
+</Steps>
+
+## Tips
+
+<Callout type="tip">
+The scatter only includes AI records. MCP usage is measured in bytes — open the [MCP tab](/docs/observability/traffic-analytics/explore-mcp) for that.
+</Callout>

@@ -1,0 +1,44 @@
+{
+  "name": "odock-docs",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "build": "next build --webpack",
+    "dev": "next dev --webpack",
+    "start": "serve out",
+    "types:check": "fumadocs-mdx && next typegen && tsc --noEmit",
+    "postinstall": "fumadocs-mdx",
+    "lint": "eslint"
+  },
+  "dependencies": {
+    "@orama/orama": "^3.1.18",
+    "fumadocs-core": "^16.8.11",
+    "fumadocs-mdx": "^15.0.6",
+    "fumadocs-ui": "^16.8.11",
+    "lucide-react": "^1.16.0",
+    "mermaid": "^11.15.0",
+    "next": "^16.2.6",
+    "next-themes": "^0.4.6",
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6",
+    "tailwind-merge": "^3.6.0",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.3.0",
+    "@types/mdx": "^2.0.13",
+    "@types/node": "^25.9.0",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "eslint": "^9",
+    "eslint-config-next": "^16.2.6",
+    "postcss": "^8.5.14",
+    "serve": "^14.2.6",
+    "tailwindcss": "^4.3.0",
+    "typescript": "^6.0.3"
+  },
+  "overrides": {
+    "postcss": "$postcss"
+  },
+  "packageManager": "yarn@4.12.0+sha512.f45ab632439a67f8bc759bf32ead036a1f413287b9042726b7cc4818b7b49e14e9423ba49b18f9e06ea4941c1ad062385b1d8760a8d5091a1a31e5f6219afca8"
+}

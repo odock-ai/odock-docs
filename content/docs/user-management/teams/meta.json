@@ -1,0 +1,15 @@
+{
+  "title": "Teams",
+  "icon": "UsersRound",
+
+  "pages": [
+    "index",
+    "create-team",
+    "rename-team",
+    "add-member",
+    "remove-member",
+    "review-team-api-keys",
+    "review-team-policies",
+    "review-team-usage"
+  ]
+}

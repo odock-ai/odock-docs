@@ -1,0 +1,15 @@
+{
+  "title": "Budgets",
+  "icon": "WalletCards",
+  "pages": [
+    "index",
+    "owner-inheritance",
+    "windows-and-reservations",
+    "amounts-and-thresholds",
+    "create-budget",
+    "team-budget",
+    "api-key-budget",
+    "monitor-budget",
+    "budget-exceeded"
+  ]
+}

@@ -1,0 +1,47 @@
+---
+title: Owner inheritance
+description: Understand how organisation, team, user, and API-key budgets combine.
+---
+
+# Owner inheritance
+
+All active matching budgets apply. A request must fit every budget in the principal chain.
+
+| Owner type | Applies to | Typical use |
+| --- | --- | --- |
+| `ORG` | All matching organisation traffic. | Monthly organisation-wide ceiling. |
+| `TEAM` | Traffic from team-scoped keys for the selected team. | Department or product budget. |
+| `USER` | Traffic from user-scoped keys for the selected user. | Personal experimentation budget. |
+| `APIKEY` | Traffic from one virtual API key. | Application, environment, or customer cap. |
+
+```mermaid
+flowchart TD
+  REQ["Request principal"]
+  ORG["Organisation budgets"]
+  TEAM{"Team-scoped key?"}
+  USER{"User-scoped key?"}
+  KEY["API-key budgets"]
+  ALL["All active matching budgets"]
+  OK{"Capacity in all windows?"}
+  ALLOW["Reserve and continue"]
+  BLOCK["402 budget_exceeded"]
+
+  REQ --> ORG --> TEAM
+  TEAM -- "yes" --> TEAM_B["Team budgets"] --> KEY
+  TEAM -- "no" --> USER
+  USER -- "yes" --> USER_B["User budgets"] --> KEY
+  USER -- "no" --> KEY
+  KEY --> ALL --> OK
+  OK -- "yes" --> ALLOW
+  OK -- "no" --> BLOCK
+```
+
+## Example
+
+A team-scoped key for the "Search" team can be stopped by:
+
+- the organisation monthly budget,
+- the Search team weekly budget,
+- the API key daily budget.
+
+This layered behavior is intentional. Broader budgets protect shared spend, and narrower budgets protect applications or owners.

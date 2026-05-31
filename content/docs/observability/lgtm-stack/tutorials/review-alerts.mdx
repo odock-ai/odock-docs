@@ -1,0 +1,82 @@
+---
+title: Review alerts and pipeline health
+description: Read the active alerts and connect them to the right Grafana dashboards.
+---
+
+# Review alerts and pipeline health
+
+Use this tutorial when the question is no longer "what happened to one request" but "what is unhealthy in the deployment right now".
+
+<Steps>
+
+<Step>
+Open the alerting view your deployment uses.
+
+This may be Grafana alerting, Alertmanager, or both depending on how your company exposes the stack.
+
+</Step>
+
+<Step>
+Group the active alerts by family before you investigate.
+
+The common families are:
+
+- infrastructure
+- OTel pipeline
+- gateway request health
+- provider health
+- logger pipeline
+- usage collector
+- token volume anomalies
+</Step>
+
+<Step>
+Open the first matching dashboard for the alert family.
+
+Use this mapping:
+
+| Alert family | Dashboard |
+| --- | --- |
+| Infrastructure | Infrastructure or Containers dashboards |
+| OTel pipeline | **Traces** -> **OTel Pipeline Health** |
+| Gateway request health | **Gateway Request Dashboard** |
+| Provider health | **Provider Dashboard** |
+| Logger pipeline | **Logger Health Dashboard** |
+| Usage collector | **Usage / Budget Dashboard** plus Redis and Postgres health |
+| Token anomalies | **Token Usage Dashboard** |
+</Step>
+
+<Step>
+Check whether the issue is signal loss or real request degradation.
+
+For example:
+
+- missing traces with healthy requests points to OTEL pipeline trouble
+- request 5xx spikes with healthy exporters points to a real runtime failure
+- log drop alerts point to lost evidence, not necessarily failed requests
+</Step>
+
+<Step>
+Capture the evidence before escalating or acting.
+
+Record:
+
+- the alert name and severity
+- the time range
+- the affected provider, service, organisation, or key
+- the dashboard screenshot or trace or log query you used
+
+</Step>
+
+</Steps>
+
+## Ownership Guide
+
+| Alert family | Usually owned by |
+| --- | --- |
+| Infrastructure | Platform or SRE team |
+| OTel pipeline | Platform or observability owner |
+| Gateway request and provider health | Platform team, often with provider escalation |
+| Token anomalies | Platform owner and organisation owner together |
+
+If you only have read-only access, stop at evidence collection and hand the incident to the deployment owner.

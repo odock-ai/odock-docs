@@ -1,0 +1,254 @@
+---
+title: Architecture
+icon: Network
+description: How Odock separates management configuration from runtime LLM and MCP traffic execution.
+---
+
+# Architecture
+
+Odock separates management from runtime execution.
+
+`odock-ui` is the management plane. It is a Next.js application that writes organisations, users, teams, providers, models, MCP servers, virtual API keys, budgets, quotas, policies, and usage views into Postgres.
+
+`odock-server` is the runtime gateway. It receives LLM and MCP traffic, reads configuration from Postgres, keeps hot-path state in Redis, enforces governance, calls upstream providers or MCP servers, and records usage.
+
+Postgres is the source of truth. Redis is the runtime acceleration and coordination layer for authentication cache entries, model and MCP metadata, rate-limit policies and counters, smart-routing policy state, SafetySec sessions, usage collection, and cache invalidation.
+
+The optional observability stack collects metrics, logs, traces, dashboards, and alerts around the gateway and supporting infrastructure. See [Docker Compose](/docs/self-host/docker-compose) for the service list and [LGTM Stack](/docs/observability/lgtm-stack) for the observability details.
+
+```mermaid
+flowchart LR
+  subgraph Clients["Runtime callers"]
+    Apps["Applications"]
+    Agents["Agents"]
+    Tools["Developer tools"]
+  end
+
+  subgraph Management["Management plane"]
+    UI["odock-ui<br/>Next.js"]
+  end
+
+  subgraph Runtime["Runtime plane"]
+    Gateway["odock-server<br/>Go gateway"]
+  end
+
+  subgraph Data["State and cache"]
+    Postgres[("PostgreSQL<br/>system of record")]
+    Redis[("Redis<br/>runtime cache, rate limits, Pub/Sub")]
+  end
+
+  subgraph Upstream["Upstream AI infrastructure"]
+    Providers["LLM providers<br/>OpenAI, Anthropic, Gemini, vLLM, custom"]
+    MCP["MCP servers<br/>HTTP, SSE, STDIO"]
+  end
+
+  subgraph Observability["Observability stack"]
+    Prometheus["Prometheus"]
+    Loki["Loki"]
+    Tempo["Tempo"]
+    Grafana["Grafana"]
+  end
+
+  Apps --> Gateway
+  Agents --> Gateway
+  Tools --> Gateway
+
+  UI --> Postgres
+  UI -- cache invalidation --> Gateway
+
+  Gateway <--> Postgres
+  Gateway <--> Redis
+  Gateway --> Providers
+  Gateway --> MCP
+
+  Gateway -- metrics --> Prometheus
+  Gateway -- logs --> Loki
+  Gateway -- traces --> Tempo
+  Prometheus --> Grafana
+  Loki --> Grafana
+  Tempo --> Grafana
+```
+
+## Management Plane
+
+The UI owns configuration workflows. Operators use it to manage identity, access, provider setup, model setup, MCP setup, routing, budgets, quotas, and usage review.
+
+Configuration changes are persisted through Prisma into Postgres. The UI wraps Prisma with cache-invalidation hooks for mutating operations on runtime-sensitive models such as API keys, model access, organisations, teams, models, providers, provider keys, and MCP servers.
+
+After a relevant mutation, the UI sends invalidation commands to `odock-server` at `/v1/internal/cache/invalidate`. The gateway validates the shared secret, publishes the commands to the Redis invalidation channel, and each gateway instance deletes the affected Redis keys. On the next request, the gateway reloads fresh state from Postgres and repopulates Redis.
+
+```mermaid
+flowchart TD
+  ADMIN["Operator"]
+  UI["odock-ui"]
+  PRISMA["Prisma client<br/>with cache invalidation extension"]
+  DB[("Postgres")]
+  ENDPOINT["odock-server<br/>/v1/internal/cache/invalidate"]
+  PUBSUB[("Redis pub/sub<br/>odock:cache-invalidation")]
+  CACHE[("Redis cache")]
+  GATEWAY["Gateway instances"]
+
+  ADMIN -->|"create, update, delete"| UI
+  UI --> PRISMA
+  PRISMA -->|"write configuration"| DB
+  PRISMA -->|"build invalidation commands"| ENDPOINT
+  ENDPOINT -->|"publish command payload"| PUBSUB
+  PUBSUB -->|"consume commands"| GATEWAY
+  GATEWAY -->|"delete affected keys"| CACHE
+  GATEWAY -->|"cache miss reload"| DB
+  GATEWAY -->|"warm fresh values"| CACHE
+```
+
+This is why management writes are visible to runtime traffic without restarting the gateway. For the resources the UI manages, see [Organisations](/docs/user-management/organisation), [Users](/docs/user-management/users), [Teams](/docs/user-management/teams), [Virtual API Keys](/docs/management/virtual-api-keys), [Providers](/docs/models-and-mcp/providers), [Models](/docs/models-and-mcp/models), [MCP Servers](/docs/models-and-mcp/mcp-servers), [Budgets](/docs/management/budgets), and [Quotas](/docs/management/quotas).
+
+## Gateway Architecture
+
+`odock-server` is the gateway. The executable is `cmd/gateway`; it wires configuration, storage clients, repositories, auth, rate limiting, SafetySec, plugins, smart routing, provider clients, MCP cache, budget enforcement, usage collection, cache invalidation, and the HTTP server.
+
+At runtime, the gateway accepts client traffic, routes it through the HTTP server, authenticates the virtual API key, applies access and rate-limit policy, runs security and cost controls, executes plugins, calls the selected provider or MCP server, records usage, and emits telemetry.
+
+```mermaid
+flowchart TD
+  CLIENT["Client apps<br/>Web, mobile, services"]
+  GATEWAY["HTTP gateway<br/>cmd/gateway"]
+  ROUTER["HTTP server and router<br/>internal/httpserver"]
+  AUTH["Auth and access control<br/>internal/auth"]
+  RATELIMIT["Rate limiter<br/>internal/ratelimit"]
+  SECURITY["Security engine<br/>internal/safetysec"]
+  COST["Cost management<br/>internal/budgetenforcer"]
+  PROVIDERS["Provider and plugin chain<br/>internal/provider, internal/plugin"]
+  UPSTREAM["Upstream providers / LLMs"]
+  STORAGE[("Postgres storage<br/>internal/storage")]
+  CACHE[("Cache layer<br/>internal Redis")]
+  CONFIG["Config and env<br/>internal/config, .env"]
+  LOGGING["Logging and usage<br/>logger, internal/usage"]
+
+  CLIENT --> GATEWAY --> ROUTER --> AUTH --> RATELIMIT --> SECURITY --> COST --> PROVIDERS --> UPSTREAM
+
+  CONFIG -.-> GATEWAY
+  CONFIG -.-> PROVIDERS
+  AUTH -.-> STORAGE
+  RATELIMIT -.-> CACHE
+  SECURITY -.-> CACHE
+  COST -.-> STORAGE
+  COST -.-> CACHE
+  PROVIDERS -.-> STORAGE
+  PROVIDERS -.-> CACHE
+  ROUTER -.-> LOGGING
+  PROVIDERS -.-> LOGGING
+```
+
+Important gateway modules:
+
+| Module | Responsibility |
+| --- | --- |
+| `internal/httpserver` | HTTP routes, middleware, provider-compatible endpoints, unified LLM endpoint, MCP endpoint, health checks, metrics endpoint, and internal cache invalidation route. |
+| `internal/auth` | Virtual API key authentication and Redis-backed positive/negative auth caching. |
+| `internal/storage` | Postgres and Redis clients plus repositories that mirror the Prisma-backed schema. |
+| `internal/modelcache` and `internal/mcpcache` | Redis-backed model, model-access, provider-key, and MCP server lookup caches. |
+| `internal/ratelimit` | Redis-backed rate-limit policy resolution, policy cache, and request gates. |
+| `internal/smartrouting` | Organisation-level routing enablement and per-API-key routing policy evaluation. |
+| `internal/safetysec` | Request and response security phases for prompt injection, jailbreak, sensitive-data, and leakage checks. |
+| `internal/plugin` and `internal/plugins` | Plugin chain execution before routing, before upstream calls, after upstream calls, and after responses. |
+| `internal/budgetenforcer` | Budget and quota reservation, enforcement, and settlement. |
+| `internal/usage` | Usage event collection, token and cost normalization, and usage record persistence. |
+| `internal/observability` | Prometheus metrics, tracing helpers, context attributes, and gateway instrumentation. |
+
+For deeper pages, see [Routing](/docs/management/routing), [Guardrails](/docs/security-and-guardrails/guardrails), [Security Engine](/docs/security-and-guardrails/safetysec-engine), [Plugin Architecture](/docs/plugins/architecture), [Plugin Lifecycle](/docs/plugins/plugin-lifecycle), and [Usage Monitoring](/docs/observability/usage-records).
+
+## Request Lifecycle
+
+Every runtime request starts in the HTTP server middleware chain. Non-LLM routes, such as health checks and key validation, leave the LLM lifecycle early. LLM routes continue through concurrency, method, rate-limit, SafetySec, auth, decode, plugin, budget, routing, provider, response, and usage stages.
+
+```mermaid
+flowchart TD
+  START["HTTP request received"]
+  MIDDLEWARE["Middleware chain<br/>RequestID -> Recovery -> Logging -> Metrics"]
+  ROUTE["Route match"]
+  IS_LLM{"LLM endpoint?"}
+  NON_LLM["Non-LLM handler<br/>Health, Healthz, ValidateKey"]
+  CONCURRENCY["Concurrency gate<br/>MaxConcurrentRequests"]
+  METHOD{"Method allowed?"}
+  PREAUTH_RL["Rate limit PreAuthGate"]
+  PREAUTH_SEC["SafetySec PhasePreAuth"]
+  AUTH["Authenticate API key"]
+  POSTAUTH_SEC["SafetySec PhasePostAuth"]
+  POLICY["Resolve rate-limit policy"]
+  EARLY_RL["Rate limit EarlyGate"]
+  DECODE["Read body and decode request"]
+  PREROUTE_PLUGIN["Plugin PhasePreRoute"]
+  FINAL_RL["Rate limit FinalGate"]
+  PREUPSTREAM_SEC["SafetySec PhasePreUpstream"]
+  PREUPSTREAM_PLUGIN["Plugin PhasePreUpstream"]
+  STREAMING{"Streaming request?"}
+
+  CALL["Provider router Call"]
+  POSTUPSTREAM_SEC["SafetySec PhasePostUpstream"]
+  POSTUPSTREAM_PLUGIN["Plugin PhasePostUpstream"]
+  TRANSFORM["Transform and encode response"]
+  WRITE["Write response 200"]
+  USAGE["PostFlight and usage enqueue"]
+  POSTRESPONSE["SafetySec PhasePostResponse<br/>Plugin PhasePostResponse"]
+
+  STREAM["Provider router Stream"]
+  STREAM_SEC["SafetySec PhasePostUpstream"]
+  STREAM_PLUGIN["Plugin PhasePostUpstream"]
+  STREAM_WRITE["Stream writer to client"]
+  STREAM_USAGE["PostFlight and usage enqueue"]
+  STREAM_POST["SafetySec PhaseStream/PostResponse<br/>Plugin PhasePostResponse"]
+
+  DENY["On deny or error at any gate or phase<br/>return 4xx/5xx response"]
+
+  START --> MIDDLEWARE --> ROUTE --> IS_LLM
+  IS_LLM -- "no" --> NON_LLM
+  IS_LLM -- "yes" --> CONCURRENCY --> METHOD --> PREAUTH_RL --> PREAUTH_SEC --> AUTH --> POSTAUTH_SEC --> POLICY --> EARLY_RL --> DECODE --> PREROUTE_PLUGIN --> FINAL_RL --> PREUPSTREAM_SEC --> PREUPSTREAM_PLUGIN --> STREAMING
+  STREAMING -- "no" --> CALL --> POSTUPSTREAM_SEC --> POSTUPSTREAM_PLUGIN --> TRANSFORM --> WRITE --> USAGE --> POSTRESPONSE
+  STREAMING -- "yes" --> STREAM --> STREAM_SEC --> STREAM_PLUGIN --> STREAM_WRITE --> STREAM_USAGE --> STREAM_POST
+
+  CONCURRENCY -.-> DENY
+  METHOD -.-> DENY
+  PREAUTH_RL -.-> DENY
+  PREAUTH_SEC -.-> DENY
+  AUTH -.-> DENY
+  POSTAUTH_SEC -.-> DENY
+  EARLY_RL -.-> DENY
+  FINAL_RL -.-> DENY
+  PREUPSTREAM_SEC -.-> DENY
+  PREUPSTREAM_PLUGIN -.-> DENY
+  CALL -.-> DENY
+  STREAM -.-> DENY
+```
+
+The provider path supports Odock's unified LLM endpoint and provider-compatible endpoints for the currently available or compatible provider shapes. For calling patterns, see [Unified Multi Model Endpoint Call](/docs/usage/unified-multi-model-endpoint-call) and [Native Models Call](/docs/usage/native-models-call). For MCP behavior, see [MCP Servers](/docs/models-and-mcp/mcp-servers).
+
+## Observability
+
+The observability stack is optional for self-hosting, but the gateway is designed to emit telemetry when it is enabled.
+
+`odock-server` exposes Prometheus metrics on `/metrics`, sends traces through OTLP HTTP, and writes structured logs to stdout. Prometheus stores metrics, Loki stores logs, Tempo stores traces, and Grafana reads all three for dashboards and incident investigation.
+
+```mermaid
+flowchart LR
+  SERVER["odock-server"]
+  PROM[("Prometheus<br/>metrics")]
+  LOKI[("Loki<br/>logs")]
+  TEMPO[("Tempo<br/>traces")]
+  OTEL["OpenTelemetry collector"]
+  PROMTAIL["Promtail"]
+  GRAFANA["Grafana dashboards"]
+  ALERTS["Alertmanager"]
+  EXPORTERS["node, cAdvisor,<br/>Redis, Postgres exporters"]
+
+  SERVER -->|"/metrics"| PROM
+  SERVER -->|"OTLP HTTP"| OTEL --> TEMPO
+  SERVER -->|"stdout logs"| PROMTAIL --> LOKI
+  EXPORTERS --> PROM
+  PROM --> ALERTS
+  GRAFANA --> PROM
+  GRAFANA --> LOKI
+  GRAFANA --> TEMPO
+```
+
+Gateway metrics cover requests, provider calls, cache lookups, rate-limit decisions, routing decisions, budget decisions, provider-key decrypt behavior, token usage, usage collection, and cache invalidation. Traces can include auth, routing, provider calls, usage collection, rate limits, budgets, plugins, and safety phases.
+
+For setup and retention, see [Self-host Observability Stack](/docs/self-host/observability-stack). For metrics, logs, traces, dashboards, alerts, and OTEL environment variables, see [LGTM Stack](/docs/observability/lgtm-stack). For persisted usage and audit records in Postgres, see [Usage Monitoring](/docs/observability/usage-records).

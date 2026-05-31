@@ -1,0 +1,48 @@
+---
+title: Monitoring Layer
+icon: ChartColumnIncreasing
+---
+
+# Monitoring Layer
+
+The observability layer is optional, but it becomes important when teams want platform-level visibility into the gateway itself, not only request-level reporting inside the Odock UI.
+
+## What It Adds
+
+A self-hosted deployment can include:
+
+- Prometheus for metrics
+- Loki and Promtail for logs
+- Tempo for traces
+- Grafana for dashboards and investigation
+- Alertmanager for notifications
+- exporters and collectors for host, container, Redis, and Postgres telemetry
+
+## Why It Matters
+
+This layer helps operators answer a different set of questions than the main Odock product UI:
+
+- is the gateway healthy
+- are infrastructure resources under pressure
+- where is latency accumulating
+- are background systems behaving normally
+- should alerts be triggered for the platform team
+
+## Odock UI Vs Platform Monitoring
+
+The Odock UI focuses on request-level governance, usage, routing, and audit visibility.
+
+The monitoring layer focuses on infrastructure health, telemetry pipelines, and operational investigation across the self-hosted stack.
+
+Both are useful, but they serve different audiences:
+
+- platform operators usually care about logs, metrics, traces, and alerts
+- product, finance, and governance teams usually care about usage records, routing, and policy outcomes
+
+## Retention And Storage
+
+Retention, storage, and archival choices depend on your own operating model. Some teams want a short troubleshooting window, while others need longer retention for audit or operational analysis.
+
+## Contact Us
+
+If you want to explore the self-hosted monitoring model, contact us. We can explain what is included for testing users and how it maps to client environments.

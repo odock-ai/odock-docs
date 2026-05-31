@@ -1,0 +1,66 @@
+---
+title: Security Modules
+description: Review the SafetySec module families and the reason each exists.
+---
+
+# Security Modules
+
+SafetySec modules are small evaluators focused on a specific safety problem. Public documentation describes the module families and their purpose, not exact detectors, thresholds, or internal ordering.
+
+## Prompt Injection
+
+Prompt-injection modules evaluate whether a request appears to be trying to manipulate the model's instruction hierarchy, override intended behavior, or extract hidden context.
+
+Why it exists: prompt injection is often an input-side attack. Blocking or scoring before the provider call reduces the chance that malicious instructions reach the model.
+
+## Jailbreak Patterns
+
+Jailbreak-pattern modules evaluate whether a request appears to be trying to move the model outside the intended behavior contract.
+
+Why it exists: jailbreak attempts and prompt injection overlap, but they are not identical. Keeping the modules separate makes tuning and future replacement easier.
+
+## Sensitive Redaction
+
+Sensitive redaction can run before and after upstream calls. It looks for sensitive data categories such as:
+
+- email addresses
+- phone numbers
+- payment-card-like values
+- provider keys
+- cloud keys
+- JWTs
+- API-key-like tokens
+
+When it finds sensitive text, it can replace the value with a redaction marker.
+
+Why it exists: redaction protects both directions. It can prevent sensitive input from being sent upstream and prevent sensitive output from being returned to the caller.
+
+## Data Leakage
+
+Data-leakage modules evaluate model output for sensitive material, unsafe echoes, or content that should not be returned to the caller.
+
+Why it exists: even if the prompt was allowed, the model may still produce sensitive output. Response-side enforcement catches that final risk before the caller receives the response.
+
+## Module Summary
+
+| Module family | Lifecycle moment | Main effect |
+| --- | --- | --- |
+| Sensitive redaction | request-side and response-side | redacts sensitive content |
+| Prompt injection | request-side | observes or blocks prompt manipulation risk |
+| Jailbreak patterns | request-side | observes or blocks policy-bypass risk |
+| Data leakage | response-side | observes, redacts, or blocks leakage risk |
+
+The exact module plan is deployment-managed. The public guarantee is the operating model: request-side modules protect input before upstream work, response-side modules protect output before the caller receives it, and evidence-producing modules help with monitoring and review.
+
+## What Users Should Watch
+
+If a request is unexpectedly blocked, check:
+
+- whether the prompt contains instruction-override or jailbreak language
+- whether repeated suspicious behavior may have raised the risk level
+- whether the response contained sensitive values
+- whether a custom plugin or separate policy gate blocked instead
+
+Usage records, request ids, and logs help correlate the user-visible error with the gate that stopped the request.
+
+Continue with [Create a security module](/docs/security-and-guardrails/safetysec-engine/create-module).

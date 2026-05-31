@@ -1,0 +1,84 @@
+---
+title: Gateway Errors
+icon: TriangleAlert
+description: Error response formats, HTTP status codes, and common LLM and MCP gateway failures.
+---
+
+# Gateway Errors
+
+Most gateway-controlled errors use this JSON shape:
+
+```json
+{
+  "error": {
+    "code": "model_not_allowed",
+    "message": "model not allowed"
+  }
+}
+```
+
+Rate-limit denials add optional scope metadata:
+
+```json
+{
+  "error": {
+    "code": "rate_limit_exceeded",
+    "message": "rate limit exceeded",
+    "scope": "api_key",
+    "limit": "requests_per_minute",
+    "retry_after": 30
+  }
+}
+```
+
+Some early transport, method, auth, concurrency, and upstream failure paths return a plain text body through `http.Error`. Native provider endpoints can also return provider-native or plain-text upstream errors when the upstream provider rejects the request. Always use the HTTP status code as the source of truth and parse JSON only when the response `Content-Type` is `application/json`.
+
+## Common LLM Errors
+
+| HTTP status | Code or body | Meaning | Fix |
+| ----------- | ------------ | ------- | --- |
+| `400` | `invalid_request_body` | The request body could not be read. | Send a valid body and content length. |
+| `400` | `invalid_request` | The endpoint decoder could not parse the payload. | Check the request shape for the selected endpoint. |
+| `400` | `model_not_found` | The requested model is not configured in the organisation. | Create the model or use the configured Odock model name. |
+| `400` | `provider_not_configured` | The model has no provider. | Attach a provider to the model. |
+| `400` | `provider_api_key_not_configured` | The model has no usable upstream provider key. | Attach an active provider API key to the model. |
+| `400` | `provider_type_unsupported` | The configured provider type is not supported by the gateway route. | Use an available or compatible provider type for gateway traffic. |
+| `400` | `provider_not_allowed` | A native endpoint was called with a model configured for another provider family. | Use the matching native endpoint or `/v1/llm/chat`. |
+| `401` | `unauthorized` | The virtual API key is missing, malformed, expired, revoked, or unknown. | Use `Authorization: Bearer ...` with an active Odock virtual key. |
+| `403` | `model_not_allowed` | The key is valid but lacks access to the model. | Grant model access to the API key. |
+| `403` | `provider_disabled` | The model's provider is disabled. | Enable the provider or choose another model. |
+| `403` | `provider_api_key_revoked` | The upstream provider key linked to the model is revoked. | Rotate or replace the provider API key. |
+| `403` | `safety_blocked` | SafetySec blocked the request or response. | Review the guardrail policy and request content. |
+| `403` | plugin-specific code or `plugin_blocked` | A plugin blocked the request. | Check plugin configuration and logs. |
+| `402` | `budget_exceeded` | A configured budget has been exhausted. | Increase the budget or wait for the next budget window. |
+| `429` | rate-limit code | A rate-limit policy denied the request. | Back off and honor `Retry-After` when present. |
+| `429` | `quota_exceeded` | A configured quota has been exhausted. | Increase the quota or wait for the next quota window. |
+| `502` | upstream error body | The upstream provider call failed or returned an unusable response. | Check provider credentials, provider health, base URL, and model slug. |
+| `503` | `model_access_unavailable` | The model access check failed. | Check database/cache availability. |
+| `503` | `model_lookup_unavailable` | Model lookup failed. | Check database/cache availability. |
+
+## Common MCP Errors
+
+| HTTP status | Code or body | Meaning | Fix |
+| ----------- | ------------ | ------- | --- |
+| `400` | `invalid_mcp_ref` | The path did not include an MCP server slug or id. | Call `/v1/mcp/{slug}` or `/v1/mcp/{id}`. |
+| `400` | `mcp_missing_endpoint` | A streamable HTTP or SSE MCP server has no endpoint URL. | Configure `endpointUrl` on the MCP server. |
+| `400` | `mcp_missing_stdio_command` | A STDIO MCP server has no command. | Configure `stdioCommand`. |
+| `400` | `invalid_transport` | The MCP server transport is unsupported. | Use `STREAMABLE_HTTP`, `SSE`, or `STDIO`. |
+| `401` | `unauthorized` | The virtual API key is missing or invalid. | Use an active Odock virtual key. |
+| `403` | `mcp_not_allowed` | The key lacks access to the MCP server. | Grant MCP access to the API key. |
+| `403` | `mcp_guardrail_block` | MCP tool rules or semantic guardrails blocked the request. | Review MCP access rules and the request payload. |
+| `404` | `mcp_not_found` | The MCP server is disabled or not found. | Check the slug or id and ensure the server is enabled. |
+| `402` | `budget_exceeded` | A budget blocked the MCP call. | Increase the budget or wait for the next budget window. |
+| `429` | `quota_exceeded` or rate-limit code | A quota or rate-limit policy blocked the call. | Back off or update the policy. |
+| `502` | `mcp_auth_error` | Odock could not prepare upstream MCP auth. | Check bearer, basic, or OAuth2 configuration. |
+| `502` | `mcp_upstream_error` | The upstream MCP HTTP/SSE request failed. | Check endpoint URL, network access, and upstream server health. |
+| `502` | `mcp_stdio_error` | The STDIO MCP command failed. | Check command, args, environment, and server startup logs. |
+
+## Endpoint Notes
+
+Native endpoints pin the provider family. If a model is configured for another provider family, the gateway returns `400 provider_not_allowed`.
+
+The unified `/v1/llm/chat` endpoint is provider-neutral. It can still return provider, model-access, budget, quota, rate-limit, SafetySec, plugin, and upstream provider errors from the same tables above.
+
+MCP endpoints resolve servers by slug or id and require `ApiKeyMcpAccess`. A valid LLM model grant does not grant MCP access.

@@ -1,0 +1,57 @@
+---
+title: Stack Components
+icon: Container
+---
+
+# Stack Components
+
+The self-hosted Odock stack is composed of a small number of core services and an optional monitoring layer.
+
+This page describes the main parts of the reference stack at a conceptual level, not as an installation guide.
+
+## Core Platform Services
+
+| Service | Role |
+| --- | --- |
+| `postgres` | Persistent database for configuration, organisation data, and usage records. |
+| `redis` | Runtime support service used by the gateway. |
+| `traefik` | Entry point and reverse proxy for the API, UI, and optional Grafana routes. |
+| `server` | Odock gateway runtime that handles requests and exposes the API. |
+| `ui-migrate` | One-shot migration service that prepares the database schema. |
+| `ui` | Operator-facing web interface for managing the deployment. |
+
+## Why The Stack Is Split This Way
+
+The split between these services reflects common platform responsibilities:
+
+- request handling and governance at the gateway layer
+- operator workflows in the UI layer
+- persistent state in the data layer
+- ingress and exposure in the routing layer
+- operational support in the runtime layer
+
+This makes it easier for teams to understand which parts are business-critical, which parts are infrastructure-facing, and which parts are optional for an early evaluation.
+
+## Optional Monitoring Services
+
+A self-hosted deployment can also include an observability layer with components such as:
+
+- `prometheus`
+- `alertmanager`
+- `loki`
+- `tempo`
+- `otel-collector`
+- `promtail`
+- `grafana`
+- `node-exporter`
+- `cadvisor`
+- `redis-exporter`
+- `postgres-exporter`
+
+These services provide platform-level telemetry for the gateway and the surrounding infrastructure.
+
+## Reference Deployment Model
+
+The current public documentation describes a reference stack based on containerized services. That reference model is useful for evaluation because it makes the platform boundaries clear and easy to discuss with infrastructure teams.
+
+If your team is considering self-hosting, contact us and we can explain how this reference architecture maps to your own environment.

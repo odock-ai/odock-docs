@@ -1,0 +1,122 @@
+---
+title: AI Playground
+icon: MessageSquareCode
+description: Test an organisation model from the UI with a selected API key.
+---
+
+# AI Playground
+
+The AI Playground lets organisation users test models from the UI before using them in an application.
+
+Most actions happen only in the UI: choosing an API key, choosing a model, writing a prompt, changing response mode, and clearing the conversation. The runtime gateway is only contacted when you test the connection or send a message.
+
+## Before You Start
+
+You need an active API key with access to at least one model.
+
+The model must be configured and available for your organisation.
+
+The gateway URL must be reachable. For local setups, this is usually `http://localhost:8080`.
+
+## Send A Test Message
+
+<Steps>
+
+<Step>
+Open your organisation workspace.
+</Step>
+
+<Step>
+Open **AI Playground** from the sidebar.
+</Step>
+
+<Step>
+Select the API key you want to test with.
+</Step>
+
+<Step>
+Enter the **Gateway URL**.
+</Step>
+
+<Step>
+Click **Test connection**.
+</Step>
+![Select Apikey and test connection](/gifs/playground-apikey-test.gif)
+
+</Steps>
+
+<Steps>
+
+<Step>
+Open the model selector.
+</Step>
+
+<Step>
+Choose a model.
+
+Only models available to the selected API key are shown.
+</Step>
+
+<Step>
+Choose **Streaming** or **Unary** response mode.
+</Step>
+
+<Step>
+Write a prompt.
+</Step>
+
+
+
+<Step>
+Read the response in the conversation.
+</Step>
+
+![Select a model and query it](/gifs/playground-chose-query-model.gif)
+
+
+
+<Step>
+**Optional**: add an attachment.
+</Step>
+
+<Step>
+Send the message.
+
+</Step>
+
+![Add image as attachment](/gifs/playground-image.gif)
+
+</Steps>
+
+
+## Start Over
+
+<Steps>
+
+<Step>
+Click **Clear** to remove the current conversation.
+</Step>
+
+<Step>
+Change the API key, model, gateway URL, or response mode.
+</Step>
+
+<Step>
+Send another test message.
+</Step>
+
+![Clear conversation](/gifs/playground-clear.gif)
+
+
+</Steps>
+
+
+## If A Request Fails
+
+If the connection fails, check the gateway URL and make sure the runtime gateway is running.
+
+If no models appear, check that the selected API key has model access.
+
+If authentication fails, check that the API key is active and allowed to use the selected model.
+
+If the model fails, try another model or ask an organisation manager to review the model configuration.

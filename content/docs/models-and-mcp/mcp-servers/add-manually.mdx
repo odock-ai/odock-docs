@@ -1,0 +1,87 @@
+---
+title: Add MCP manually
+icon: ListChecks
+description: Create a custom MCP server record from endpoint or STDIO settings.
+---
+
+# Add an MCP server manually
+
+Use manual creation when the server is not in the trusted catalog or when you need custom settings.
+
+Before creating a custom server, review the transport and security model:
+
+- [Streamable HTTP transport](/docs/models-and-mcp/mcp-servers/streamable-http-transport)
+- [SSE transport](/docs/models-and-mcp/mcp-servers/sse-transport)
+- [STDIO transport](/docs/models-and-mcp/mcp-servers/stdio-transport)
+- [MCP authentication](/docs/models-and-mcp/mcp-servers/authentication)
+- [MCP security](/docs/models-and-mcp/mcp-servers/security)
+
+<Steps>
+
+<Step>
+Open **MCP Servers**.
+</Step>
+
+<Step>
+Click the **Add Manual MCP Server** button.
+</Step>
+
+<Step>
+In **Identity**, enter Name, Slug, and Description.
+
+Name is the human-readable label shown in the UI. Slug must be unique in the organisation and is used in gateway calls such as `/v1/mcp/{slug}`.
+</Step>
+
+<Step>
+In **Transport**, choose `STREAMABLE_HTTP`, `SSE`, or `STDIO`.
+
+Use [Streamable HTTP transport](/docs/models-and-mcp/mcp-servers/streamable-http-transport) for HTTP MCP services, [SSE transport](/docs/models-and-mcp/mcp-servers/sse-transport) for streaming services, or [STDIO transport](/docs/models-and-mcp/mcp-servers/stdio-transport) for local command-based servers.
+</Step>
+
+<Step>
+For HTTP or SSE, enter the endpoint URL.
+</Step>
+
+<Step>
+For STDIO, enter the command, args, and optional environment JSON.
+</Step>
+
+<Step>
+In **Security & Access**, choose the upstream auth type.
+
+See [MCP authentication](/docs/models-and-mcp/mcp-servers/authentication) for `NONE`, `BEARER`, `BASIC`, and `OAUTH2` config examples.
+</Step>
+
+<Step>
+Enter auth config JSON if the auth type requires it.
+</Step>
+
+<Step>
+Set **Enabled**.
+</Step>
+
+<Step>
+Set **Public Internet** if the server is publicly reachable.
+</Step>
+
+<Step>
+Optionally choose Team Scope or API Key Scope.
+
+Use these only when the MCP server itself should be restricted to a narrower context. See [MCP security](/docs/models-and-mcp/mcp-servers/security).
+</Step>
+
+<Step>
+In **Governance**, enter allowed tools, blocked tools, semantic filter JSON, and metadata.
+
+For guidance on allowed tools, blocked tools, and semantic filters, see [MCP security](/docs/models-and-mcp/mcp-servers/security).
+
+</Step>
+
+<Step>
+Create the server.
+</Step>
+
+</Steps>
+
+
+![Add MCP Server manually ](/gifs/mcp-add-manual.gif)

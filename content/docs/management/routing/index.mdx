@@ -1,0 +1,53 @@
+---
+title: Routing
+description: Route model calls across approved candidates with failover, priority, or round-robin behavior.
+---
+
+# Routing
+
+Smart routing lets Odock choose among approved model candidates at runtime. It is configured at two levels:
+
+1. The organisation routing switch enables routing for the organisation.
+2. The API-key routing policy defines candidates and strategy for that key.
+
+If the switch is disabled, requests behave as direct model calls. If the switch is enabled but a key has no routing policy, that key also behaves as a direct model call.
+
+## Runtime Flow
+
+```mermaid
+flowchart TD
+  REQ["Request with model name"]
+  SWITCH{"Organisation routing enabled?"}
+  POLICY{"API key has routing policy?"}
+  TYPE["Resolve model type"]
+  CANDIDATES["Select candidates"]
+  ATTEMPT["Call candidate"]
+  SUCCESS{"Success?"}
+  RETRY{"Failover trigger and retry left?"}
+  NEXT["Next candidate"]
+  DONE["Return response"]
+  ERROR["Return final error"]
+
+  REQ --> SWITCH
+  SWITCH -- "no" --> ATTEMPT
+  SWITCH -- "yes" --> POLICY
+  POLICY -- "no" --> ATTEMPT
+  POLICY -- "yes" --> TYPE --> CANDIDATES --> ATTEMPT
+  ATTEMPT --> SUCCESS
+  SUCCESS -- "yes" --> DONE
+  SUCCESS -- "no" --> RETRY
+  RETRY -- "yes" --> NEXT --> ATTEMPT
+  RETRY -- "no" --> ERROR
+```
+
+Routing never bypasses access grants. Every routing candidate must be a model the key can access.
+
+## Pages In This Submenu
+
+- [Routing concepts](/docs/management/routing/routing-concepts)
+- [Native vs unified routing](/docs/management/routing/native-vs-unified-routing)
+- [Routing strategies](/docs/management/routing/routing-strategies)
+- [Enable organisation routing](/docs/management/routing/enable-organisation-routing)
+- [Configure API-key routing](/docs/management/routing/configure-api-key-routing)
+- [Build a failover plan](/docs/management/routing/build-failover-plan)
+- [Monitor routing](/docs/management/routing/monitor-routing)

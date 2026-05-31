@@ -1,0 +1,354 @@
+---
+title: Quick Start
+icon: Terminal
+description: Switch an OpenAI-compatible model call to Odock in five minutes.
+---
+
+import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
+
+# Quick Start
+
+In [Initial Setup](/docs/getting-started/setup), you created a virtual API key and granted it access to `gpt-4.1`, `gpt-4.1-mini`, and `gpt-4.1-nano`.
+
+Odock is OpenAI-compatible, so switching existing OpenAI SDK, curl, or LangGraph code usually takes about five minutes. Keep the same request shape, model call, messages, streaming options, and parsing logic.
+
+You only need to change two things:
+
+1. Set the base URL to Odock.
+2. Replace the upstream provider key with your Odock virtual API key.
+
+Your application sends the virtual API key to Odock, and Odock uses the encrypted provider key from the previous setup chapter to call the upstream model.
+
+## Before You Start
+
+You need:
+
+- the virtual API key you revealed in the setup guide
+- an Odock gateway URL
+- access to the `gpt-4.1-mini` model for that virtual API key
+
+| Deployment | Base URL |
+| ---------- | -------- |
+| Odock Cloud | `https://api.odock.ai/v1` |
+| Local self-hosted gateway | `http://localhost:8080/v1` |
+| Custom self-hosted domain | your own `/v1` gateway URL, for example `https://ai-gateway.example.com/v1` |
+
+Do not use the upstream OpenAI provider key in your application code. Use the Odock virtual API key.
+
+## The Whole Switch
+
+If your code already uses the OpenAI SDK, the migration is just this:
+
+```diff
+client = OpenAI(
+-    api_key=os.environ["OPENAI_API_KEY"],
++    api_key=os.environ["ODOCK_API_KEY"],
++    base_url=os.environ.get("ODOCK_BASE_URL", "https://api.odock.ai/v1"),
+)
+```
+
+Everything below expands that same change across Python, curl, and LangGraph.
+
+## First Model Call
+
+<Steps>
+
+<Step>
+
+### Export the Odock Gateway Settings
+
+Set the gateway URL and the virtual API key from the previous chapter. Use Odock Cloud by default, or replace the URL with your self-hosted gateway.
+
+<Tabs items={["macOS/Linux", "Windows PowerShell"]}>
+<Tab>
+
+```bash
+export ODOCK_BASE_URL="https://api.odock.ai/v1"
+export ODOCK_API_KEY="sk_your_dock_virtual_key"
+export ODOCK_MODEL="gpt-4.1-mini"
+```
+
+</Tab>
+<Tab>
+
+```powershell
+$env:ODOCK_BASE_URL = "https://api.odock.ai/v1"
+$env:ODOCK_API_KEY = "sk_your_dock_virtual_key"
+$env:ODOCK_MODEL = "gpt-4.1-mini"
+```
+
+</Tab>
+</Tabs>
+
+For local self-hosted Odock, use:
+
+```bash
+export ODOCK_BASE_URL="http://localhost:8080/v1"
+```
+
+For another self-hosted deployment, use your own gateway URL, for example `https://ai-gateway.example.com/v1`.
+
+`ODOCK_API_KEY` is the virtual key created in Odock. `ODOCK_BASE_URL` points SDKs and HTTP clients at Odock instead of directly at OpenAI.
+
+</Step>
+
+<Step>
+
+### Install the Client Library
+
+Choose the dependency set for the client you want to use.
+
+<Tabs items={["OpenAI SDK", "curl", "LangGraph"]}>
+<Tab>
+
+```bash
+python -m pip install openai
+```
+
+</Tab>
+<Tab>
+
+```bash
+curl --version
+```
+
+</Tab>
+<Tab>
+
+```bash
+python -m pip install langgraph langchain-openai
+```
+
+</Tab>
+</Tabs>
+
+The OpenAI SDK and LangGraph examples both use the same OpenAI-compatible Odock endpoint. The curl example sends the same request over plain HTTP.
+
+</Step>
+
+<Step>
+
+### Send a Chat Request
+
+Use one of these examples to call `gpt-4.1-mini` through Odock. The request body is the normal OpenAI-compatible chat completions request; only the URL and API key point to Odock.
+
+<Tabs items={["OpenAI SDK", "curl", "LangGraph"]}>
+<Tab>
+
+Create `first_call.py`:
+
+```python
+import os
+from openai import OpenAI
+
+client = OpenAI(
+    api_key=os.environ["ODOCK_API_KEY"],
+    base_url=os.environ.get("ODOCK_BASE_URL", "https://api.odock.ai/v1"),
+)
+
+response = client.chat.completions.create(
+    model=os.environ.get("ODOCK_MODEL", "gpt-4.1-mini"),
+    messages=[
+        {
+            "role": "user",
+            "content": "Write one sentence explaining what Odock does.",
+        }
+    ],
+    temperature=0.2,
+    max_tokens=120,
+)
+
+print(response.choices[0].message.content)
+```
+
+Run it:
+
+```bash
+python first_call.py
+```
+
+</Tab>
+<Tab>
+
+```bash
+curl "$ODOCK_BASE_URL/chat/completions" \
+  -H "Authorization: Bearer $ODOCK_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "'"$ODOCK_MODEL"'",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Write one sentence explaining what Odock does."
+      }
+    ],
+    "temperature": 0.2,
+    "max_tokens": 120
+  }'
+```
+
+</Tab>
+<Tab>
+
+Create `first_langgraph_call.py`:
+
+```python
+import os
+from typing import TypedDict
+
+from langchain_openai import ChatOpenAI
+from langgraph.graph import END, START, StateGraph
+
+
+class State(TypedDict):
+    prompt: str
+    answer: str
+
+
+llm = ChatOpenAI(
+    api_key=os.environ["ODOCK_API_KEY"],
+    base_url=os.environ.get("ODOCK_BASE_URL", "https://api.odock.ai/v1"),
+    model=os.environ.get("ODOCK_MODEL", "gpt-4.1-mini"),
+    temperature=0.2,
+    max_tokens=120,
+)
+
+
+def call_model(state: State) -> State:
+    response = llm.invoke(state["prompt"])
+    return {
+        "prompt": state["prompt"],
+        "answer": response.content,
+    }
+
+
+builder = StateGraph(State)
+builder.add_node("call_model", call_model)
+builder.add_edge(START, "call_model")
+builder.add_edge("call_model", END)
+
+graph = builder.compile()
+result = graph.invoke(
+    {"prompt": "Write one sentence explaining what Odock does.", "answer": ""}
+)
+
+print(result["answer"])
+```
+
+Run it:
+
+```bash
+python first_langgraph_call.py
+```
+
+</Tab>
+</Tabs>
+
+All three versions send a request to the same Odock gateway and use the same virtual API key. The model name must match a model configured in your organisation, and the virtual API key must have access to that model.
+
+</Step>
+
+<Step>
+
+### Try Streaming
+
+Streaming returns tokens as they are generated. Odock forwards the stream from the upstream provider while still enforcing access, routing, budgets, quotas, plugins, and usage tracking.
+
+<Tabs items={["OpenAI SDK", "curl"]}>
+<Tab>
+
+Create `stream_call.py`:
+
+```python
+import os
+from openai import OpenAI
+
+client = OpenAI(
+    api_key=os.environ["ODOCK_API_KEY"],
+    base_url=os.environ.get("ODOCK_BASE_URL", "https://api.odock.ai/v1"),
+)
+
+stream = client.chat.completions.create(
+    model=os.environ.get("ODOCK_MODEL", "gpt-4.1-mini"),
+    messages=[
+        {
+            "role": "user",
+            "content": "Give three practical reasons to use an AI gateway.",
+        }
+    ],
+    temperature=0.3,
+    max_tokens=180,
+    stream=True,
+    extra_body={
+        "include_usage": True,
+    },
+)
+
+for chunk in stream:
+    delta = chunk.choices[0].delta
+    if delta.content:
+        print(delta.content, end="", flush=True)
+
+print()
+```
+
+Run it:
+
+```bash
+python stream_call.py
+```
+
+</Tab>
+<Tab>
+
+```bash
+curl -N "$ODOCK_BASE_URL/chat/completions" \
+  -H "Authorization: Bearer $ODOCK_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "'"$ODOCK_MODEL"'",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Give three practical reasons to use an AI gateway."
+      }
+    ],
+    "temperature": 0.3,
+    "max_tokens": 180,
+    "stream": true,
+    "include_usage": true
+  }'
+```
+
+</Tab>
+</Tabs>
+
+The local test scripts under `odock/odock-server/tests/_python` use the same pattern: set the Odock `base_url`, authenticate with a virtual API key, and call the OpenAI-compatible chat endpoint.
+
+</Step>
+
+<Step>
+
+### Confirm the Call in Odock
+
+After the request succeeds, open the Odock UI and check the request in your usage or observability views.
+
+You should see the virtual API key, requested model, provider route, latency, token usage, and request status. This confirms that the call went through Odock instead of going directly to the upstream provider.
+
+</Step>
+
+</Steps>
+
+## Troubleshooting
+
+| Error | What to Check |
+| ----- | ------------- |
+| `401 Unauthorized` | The request is missing `Authorization: Bearer ...`, or `ODOCK_API_KEY` is not the virtual API key from Odock. |
+| `403 Forbidden` | The virtual API key exists but does not have access to the requested model. Grant model access on the API key detail page. |
+| `404 Not Found` | Confirm that the gateway is running and that `ODOCK_BASE_URL` ends with `/v1`. |
+| `model not found` | The model name in `ODOCK_MODEL` must match an organisation model configured in Odock. |
+| upstream provider error | Check that the provider is active and that its encrypted provider key is valid. |
+
+## Next Steps
+
+Use the same `ODOCK_BASE_URL` and virtual API key in your application code. For the complete gateway reference, endpoint tables, auth methods, and error shapes, see [Usage](/docs/usage). For provider-neutral routing across different model families, continue with [Unified Multi Model Endpoint call](/docs/usage/unified-multi-model-endpoint-call). For OpenAI-compatible endpoints beyond chat, see [Native Models call](/docs/usage/native-models-call).

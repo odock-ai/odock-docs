@@ -1,0 +1,391 @@
+---
+title: Call an MCP server through Odock
+icon: ListChecks
+description: Use a configured MCP server through Odock with curl, Python, the MCP SDK, LangChain, TypeScript, and AI SDK.
+---
+
+# Call an MCP server through Odock
+
+This tutorial shows how to call a configured MCP server through the Odock gateway.
+
+The example uses the MCP server from the manual setup tutorial:
+
+| Field | Value |
+| --- | --- |
+| Name | `github-tools-http` |
+| Slug | `github-tools-http` |
+| Transport | `STREAMABLE_HTTP` |
+| Upstream endpoint | `https://api.githubcopilot.com/mcp/` |
+| Upstream auth | `BEARER`, stored on the MCP server record |
+
+Applications do not call `https://api.githubcopilot.com/mcp/` directly. They call Odock:
+
+```txt
+/v1/mcp/github-tools-http
+```
+
+Odock authenticates the virtual API key, checks MCP access, applies policies and guardrails, injects the configured upstream bearer token, proxies the MCP request, and records usage.
+
+If the upstream GitHub token used during setup is a real token, rotate it after sharing it in chat or documentation. Do not publish upstream provider or MCP server secrets.
+
+## Before You Start
+
+You need:
+
+- an active virtual API key in Odock
+- `MCP Access` granted for `github-tools-http`
+- a gateway URL
+- the MCP server enabled
+
+Set these environment variables:
+
+```bash
+export ODOCK_GATEWAY_URL="https://api.odock.ai"
+export ODOCK_API_KEY="odock_virtual_api_key"
+export ODOCK_MCP_SLUG="github-tools-http"
+export ODOCK_MCP_URL="$ODOCK_GATEWAY_URL/v1/mcp/$ODOCK_MCP_SLUG"
+```
+
+For access setup, see [Grant MCP access to an API key](/docs/models-and-mcp/mcp-servers/grant-mcp-to-api-key). For transport behavior, see [Streamable HTTP transport](/docs/models-and-mcp/mcp-servers/streamable-http-transport).
+
+For client library details, see the official [MCP SDK list](https://modelcontextprotocol.io/docs/sdk), [MCP Python client guide](https://py.sdk.modelcontextprotocol.io/client/), [MCP TypeScript client guide](https://github.com/modelcontextprotocol/typescript-sdk/blob/main/docs/client.md), [LangChain MCP adapter reference](https://reference.langchain.com/python/langchain-mcp-adapters/client), and [AI SDK `createMCPClient` reference](https://ai-sdk.dev/docs/reference/ai-sdk-core/create-mcp-client).
+
+## Available Tools
+
+The configured GitHub MCP server exposes tools such as:
+
+| Category | Tools |
+| --- | --- |
+| Identity and metadata | `get_me`, `get_team_members`, `get_teams` |
+| Repositories | `create_repository`, `fork_repository`, `search_repositories` |
+| Files and branches | `get_file_contents`, `create_or_update_file`, `delete_file`, `push_files`, `create_branch`, `list_branches` |
+| Issues | `list_issues`, `issue_read`, `issue_write`, `add_issue_comment`, `list_issue_types`, `search_issues`, `sub_issue_write` |
+| Pull requests | `list_pull_requests`, `search_pull_requests`, `create_pull_request`, `update_pull_request`, `update_pull_request_branch`, `merge_pull_request` |
+| Pull request reviews | `add_comment_to_pending_review`, `add_reply_to_pull_request_comment`, `pull_request_read`, `pull_request_review_write`, `request_copilot_review` |
+| Releases and tags | `list_releases`, `get_latest_release`, `get_release_by_tag`, `list_tags`, `get_tag` |
+| Commits and labels | `list_commits`, `get_commit`, `get_label` |
+| Security | `run_secret_scanning` |
+| Search | `search_code`, `search_users` |
+
+The setup you described has empty allowed and blocked tool lists. That means Odock will not restrict tool names at the MCP governance layer. For production, restrict this list. For example, allow read-only tools first, then add write tools only for trusted API keys. See [MCP security](/docs/models-and-mcp/mcp-servers/security).
+
+## Call With curl
+
+Use curl for quick verification and debugging.
+
+<Steps>
+
+<Step>
+List available tools.
+
+```bash
+curl "$ODOCK_MCP_URL" \
+  -H "Authorization: Bearer $ODOCK_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "jsonrpc": "2.0",
+    "id": "tools-list-1",
+    "method": "tools/list",
+    "params": {}
+  }'
+```
+</Step>
+
+<Step>
+Call a simple identity tool.
+
+```bash
+curl "$ODOCK_MCP_URL" \
+  -H "Authorization: Bearer $ODOCK_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "jsonrpc": "2.0",
+    "id": "get-me-1",
+    "method": "tools/call",
+    "params": {
+      "name": "get_me",
+      "arguments": {}
+    }
+  }'
+```
+</Step>
+
+<Step>
+Call a read-only search tool.
+
+```bash
+curl "$ODOCK_MCP_URL" \
+  -H "Authorization: Bearer $ODOCK_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "jsonrpc": "2.0",
+    "id": "search-repos-1",
+    "method": "tools/call",
+    "params": {
+      "name": "search_repositories",
+      "arguments": {
+        "query": "org:my-org odock"
+      }
+    }
+  }'
+```
+</Step>
+
+</Steps>
+
+## Call With Python Requests
+
+Use this when you want direct control over JSON-RPC payloads without an MCP client library.
+
+```python
+import os
+import requests
+
+MCP_URL = os.environ["ODOCK_MCP_URL"]
+ODOCK_API_KEY = os.environ["ODOCK_API_KEY"]
+
+
+def call_mcp(method: str, params: dict | None = None, request_id: str = "req-1"):
+    response = requests.post(
+        MCP_URL,
+        headers={
+            "Authorization": f"Bearer {ODOCK_API_KEY}",
+            "Content-Type": "application/json",
+        },
+        json={
+            "jsonrpc": "2.0",
+            "id": request_id,
+            "method": method,
+            "params": params or {},
+        },
+        timeout=60,
+    )
+    response.raise_for_status()
+    return response.json()
+
+
+tools = call_mcp("tools/list", request_id="tools-list")
+print([tool["name"] for tool in tools.get("result", {}).get("tools", [])])
+
+me = call_mcp(
+    "tools/call",
+    {
+        "name": "get_me",
+        "arguments": {},
+    },
+    request_id="get-me",
+)
+print(me)
+```
+
+This pattern is useful for backend jobs, tests, and integrations where the application already decides which MCP tool to call.
+
+## Call With The MCP Python SDK
+
+Use the official MCP Python SDK when you want a real MCP client session with initialization, tool discovery, and typed tool calls.
+
+Install:
+
+```bash
+pip install mcp
+```
+
+Example:
+
+```python
+import asyncio
+import os
+
+from mcp import ClientSession
+from mcp.client.streamable_http import streamable_http_client
+
+
+async def main():
+    url = os.environ["ODOCK_MCP_URL"]
+    api_key = os.environ["ODOCK_API_KEY"]
+
+    async with streamable_http_client(
+        url,
+        headers={"Authorization": f"Bearer {api_key}"},
+    ) as (read_stream, write_stream, _):
+        async with ClientSession(read_stream, write_stream) as session:
+            await session.initialize()
+
+            tools = await session.list_tools()
+            print("Tools:", [tool.name for tool in tools.tools])
+
+            result = await session.call_tool("get_me", arguments={})
+            print(result)
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
+```
+
+The MCP Python SDK documents `ClientSession` and `streamable_http_client` for Streamable HTTP clients.
+
+## Use With LangChain Python
+
+Use LangChain when you want MCP tools to become tools available to an agent.
+
+Install:
+
+```bash
+pip install langchain langchain-mcp-adapters
+```
+
+Example:
+
+```python
+import os
+import asyncio
+
+from langchain.agents import create_agent
+from langchain_mcp_adapters.client import MultiServerMCPClient
+
+
+async def main():
+    client = MultiServerMCPClient(
+        {
+            "github": {
+                "transport": "http",
+                "url": os.environ["ODOCK_MCP_URL"],
+                "headers": {
+                    "Authorization": f"Bearer {os.environ['ODOCK_API_KEY']}",
+                },
+            }
+        }
+    )
+
+    tools = await client.get_tools()
+    print("Loaded tools:", [tool.name for tool in tools])
+
+    agent = create_agent(
+        "openai:gpt-4.1",
+        tools,
+    )
+
+    response = await agent.ainvoke(
+        {
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "Use GitHub tools to tell me who the authenticated GitHub user is.",
+                }
+            ]
+        }
+    )
+    print(response)
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
+```
+
+Some `langchain-mcp-adapters` versions use `transport: "streamable_http"` for the same remote HTTP transport. If `transport: "http"` is not accepted by your installed version, switch that value to `streamable_http`.
+
+For write-capable GitHub tools such as `create_or_update_file`, `delete_file`, `push_files`, or `merge_pull_request`, add human approval or a separate API key with stricter access. Do not expose write tools to broad agents by default.
+
+## Use With The MCP TypeScript SDK
+
+Use the official TypeScript SDK when you want a direct MCP client in Node.js.
+
+Install:
+
+```bash
+npm install @modelcontextprotocol/client
+```
+
+Example:
+
+```ts
+import {
+  Client,
+  StreamableHTTPClientTransport,
+} from "@modelcontextprotocol/client";
+
+const url = new URL(process.env.ODOCK_MCP_URL!);
+const apiKey = process.env.ODOCK_API_KEY!;
+
+const client = new Client({
+  name: "odock-github-tools-client",
+  version: "1.0.0",
+});
+
+const transport = new StreamableHTTPClientTransport(url, {
+  authProvider: {
+    token: async () => apiKey,
+  },
+});
+
+await client.connect(transport);
+
+const tools = await client.listTools();
+console.log(tools.tools.map((tool) => tool.name));
+
+const result = await client.callTool({
+  name: "get_me",
+  arguments: {},
+});
+console.log(result);
+
+await transport.terminateSession?.();
+await client.close();
+```
+
+Older MCP SDK v1 projects may import from `@modelcontextprotocol/sdk/client/index.js` and `@modelcontextprotocol/sdk/client/streamableHttp.js`. New projects should prefer the current `@modelcontextprotocol/client` package.
+
+## Use With AI SDK
+
+Use the AI SDK when you want MCP tools available to `generateText`, `streamText`, or agent-style code in a TypeScript app.
+
+Install:
+
+```bash
+npm install ai @ai-sdk/mcp
+```
+
+Example:
+
+```ts
+import { createMCPClient } from "@ai-sdk/mcp";
+
+const mcpClient = await createMCPClient({
+  transport: {
+    type: "http",
+    url: process.env.ODOCK_MCP_URL!,
+    headers: {
+      Authorization: `Bearer ${process.env.ODOCK_API_KEY!}`,
+    },
+    redirect: "error",
+  },
+});
+
+const tools = await mcpClient.tools();
+console.log(Object.keys(tools));
+
+// Pass `tools` to generateText, streamText, or your agent runtime.
+await mcpClient.close();
+```
+
+The AI SDK recommends HTTP transport for production MCP deployments and stdio only for local servers.
+
+## Production Guardrails
+
+This GitHub MCP server has many write-capable tools. For production use:
+
+- grant MCP access only to API keys that need GitHub tools
+- split read-only and write-capable use cases into separate API keys
+- set `Allowed Tools` for each API key or project
+- block destructive tools unless explicitly required
+- configure [MCP pricing](/docs/models-and-mcp/mcp-servers/pricing) for visibility
+- add [budgets](/docs/management/budgets) or [quotas](/docs/management/quotas)
+- review [Usage Records](/docs/observability/usage-records) after test calls
+
+Good first allowed-tool set for read-only testing:
+
+```txt
+get_me,search_repositories,search_code,list_issues,issue_read,list_pull_requests,pull_request_read,get_file_contents
+```
+
+Add write tools only after you have project-level approval and rollback expectations.

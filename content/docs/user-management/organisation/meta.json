@@ -1,0 +1,11 @@
+{
+  "title": "Organisation",
+  "icon": "Building2",
+
+  "pages": [
+    "index",
+    "update-information",
+    "routing-switch",
+    "review-policies"
+  ]
+}

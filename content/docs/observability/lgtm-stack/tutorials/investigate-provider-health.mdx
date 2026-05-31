@@ -1,0 +1,59 @@
+---
+title: Investigate provider latency or errors
+description: Use Grafana dashboards to separate provider problems from gateway problems.
+---
+
+# Investigate provider latency or errors
+
+Use this tutorial when users report slow or failing requests and you need to know whether the problem is inside Odock or at the upstream provider edge.
+
+<Steps>
+
+<Step>
+Open **Operations** -> **Provider Dashboard** in Grafana.
+
+Set the time range to the incident window before applying any filters.
+
+</Step>
+
+<Step>
+Check request rate, error rate, and latency for the affected provider.
+
+Look for:
+
+- a sudden rise in error ratio
+- p95 or p99 latency spikes
+- one provider degrading while others stay healthy
+</Step>
+
+<Step>
+Cross-check **Gateway Request Dashboard**.
+
+Compare total request latency with gateway overhead. If gateway overhead is low while provider latency is high, the provider path is the more likely cause.
+
+</Step>
+
+<Step>
+Drill into traces or logs for one failing sample.
+
+Open a slow or failing request and inspect `gateway.provider.request` spans or filtered Loki logs for the same provider and time window.
+</Step>
+
+<Step>
+If your role can access **Organizations Overview**, confirm whether the issue affects one organisation or the whole deployment.
+
+If only one organisation is affected, compare route choice, model choice, plugins, budgets, and traffic shape before escalating.
+</Step>
+
+</Steps>
+
+## How To Interpret What You See
+
+| Signal | Interpretation |
+| --- | --- |
+| High provider latency, low gateway overhead | Provider-side slowness |
+| High gateway overhead, normal provider latency | Gateway plugin, safety, routing, or internal dependency issue |
+| One provider erroring, others healthy | Isolated upstream incident |
+| All providers slow at once | Broader platform, network, or infrastructure issue |
+
+If metrics suggest a platform issue or exporter problem, continue with [Review alerts and pipeline health](/docs/observability/lgtm-stack/tutorials/review-alerts).

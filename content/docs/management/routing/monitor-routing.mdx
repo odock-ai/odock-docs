@@ -1,0 +1,58 @@
+---
+title: Monitor routing
+icon: ListChecks
+description: Inspect routing attempts in usage records.
+---
+
+# Monitor routing
+
+Usage records show whether a request was direct or rerouted and which candidates were attempted.
+
+<Steps>
+
+<Step>
+Open **Usage Records**.
+</Step>
+
+<Step>
+Filter by API key, model, provider, or time window.
+</Step>
+
+<Step>
+Open a usage record.
+</Step>
+
+<Step>
+Review the **Routing** card.
+</Step>
+
+<Step>
+Check whether the request is marked **Direct** or **Rerouted**.
+![Monitor Rerouted usage table](/images/routing-usage-table.png)
+
+</Step>
+
+<Step>
+Review attempt count, final provider, final model, and any attempt errors.
+
+![Monitor Rerouted usage breakdown](/images/routing-usage-breakdown.png)
+
+</Step>
+
+<Step>
+Compare routing behavior with latency and cost.
+</Step>
+
+</Steps>
+
+![Monitor Rerouted usage Candidate](/gifs/routing-usage.gif)
+
+## What To Investigate
+
+| Observation | Possible cause |
+| --- | --- |
+| No routing card | Routing was not used or no routing trace was recorded. |
+| Direct request | Organisation switch off, no key policy, or first candidate succeeded. |
+| Many attempts | Provider failures, timeouts, upstream/provider `429` rate-limit errors, or retry settings too broad. |
+| Higher latency | Additional candidates were attempted before success. |
+| Unexpected final model | Candidate order or native fallback configuration differs from expectation. |
