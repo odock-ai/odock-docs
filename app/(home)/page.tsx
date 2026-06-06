@@ -78,8 +78,15 @@ const cards: {
 export default function HomePage() {
   return (
     <main className="flex flex-1 flex-col">
-      <section className="border-b px-6 py-16 sm:py-20">
-        <div className="mx-auto max-w-6xl">
+      <section className="relative overflow-hidden border-b px-6 py-16 sm:py-20">
+        <div className="absolute inset-0 grid-pattern opacity-30" />
+        <div className="absolute inset-0 grid-pattern-large opacity-60" />
+        <div className="absolute inset-0 bg-gradient-to-b from-fd-background via-transparent to-fd-background" />
+        <div className="absolute inset-0 bg-gradient-to-r from-fd-background/80 via-transparent to-fd-background/80" />
+        <div className="absolute left-1/4 top-1/4 h-96 w-96 rounded-full bg-fd-primary/5 blur-3xl" />
+        <div className="absolute bottom-1/4 right-1/4 h-96 w-96 rounded-full bg-fd-primary/5 blur-3xl" />
+
+        <div className="relative mx-auto max-w-6xl">
           <div className="max-w-3xl">
             <div className="mb-5 inline-flex w-fit max-w-full items-center gap-2 border border-fd-border bg-fd-card px-3 py-1.5 sm:mb-6">
               <span className="h-1.5 w-1.5 bg-fd-primary" />

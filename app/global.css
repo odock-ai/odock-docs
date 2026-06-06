@@ -131,6 +131,20 @@
   }
 }
 
+.grid-pattern {
+  background-image:
+    linear-gradient(to right, color-mix(in oklab, var(--color-fd-border) 50%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in oklab, var(--color-fd-border) 50%, transparent) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+.grid-pattern-large {
+  background-image:
+    linear-gradient(to right, color-mix(in oklab, var(--color-fd-border) 45%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in oklab, var(--color-fd-border) 45%, transparent) 1px, transparent 1px);
+  background-size: 120px 120px;
+}
+
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
