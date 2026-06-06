@@ -1,4 +1,4 @@
-export const appName = 'Odock.ai';
+export const appName = 'ODOCK.AI';
 export const docsRoute = '/docs';
 export const docsImageRoute = '/og/docs';
 export const docsContentRoute = '/llms.mdx/docs';

@@ -81,7 +81,12 @@ export default function HomePage() {
       <section className="border-b px-6 py-16 sm:py-20">
         <div className="mx-auto max-w-6xl">
           <div className="max-w-3xl">
-            <p className="mb-3 text-sm font-medium text-fd-muted-foreground">Odock Documentation</p>
+            <div className="mb-5 inline-flex w-fit max-w-full items-center gap-2 border border-fd-border bg-fd-card px-3 py-1.5 sm:mb-6">
+              <span className="h-1.5 w-1.5 bg-fd-primary" />
+              <span className="text-[9px] uppercase tracking-[0.2em] text-fd-muted-foreground sm:text-[10px]">
+                Odock Documentation
+              </span>
+            </div>
             <h1 className="text-4xl font-semibold tracking-tight sm:text-6xl">
               Govern LLM and MCP traffic from one gateway.
             </h1>

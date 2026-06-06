@@ -5,7 +5,6 @@ import { appName, gitConfig } from './shared';
 export function baseOptions(): BaseLayoutProps {
   return {
     nav: {
-      // JSX supported
       title: (
         <span className="inline-flex items-center gap-2 font-semibold">
           <span className="relative h-6 w-6 shrink-0">
