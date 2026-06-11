@@ -14,10 +14,27 @@ import {
 import Link from 'next/link';
 import type { Metadata } from 'next';
 
+const title = 'Odock Documentation';
+const description =
+  'Learn how to use Odock as an AI governance gateway for LLM and MCP traffic, from first setup to routing, security, observability, and self-hosting.';
+
 export function generateMetadata(): Metadata {
   return {
+    title,
+    description,
     alternates: {
       canonical: '/',
+    },
+    openGraph: {
+      title,
+      description,
+      url: '/',
+      type: 'website',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
     },
   };
 }
