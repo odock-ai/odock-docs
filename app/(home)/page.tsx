@@ -12,6 +12,15 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import Link from 'next/link';
+import type { Metadata } from 'next';
+
+export function generateMetadata(): Metadata {
+  return {
+    alternates: {
+      canonical: '/',
+    },
+  };
+}
 
 const cards: {
   title: string;
@@ -104,14 +113,14 @@ export default function HomePage() {
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Link
-                href="/docs/getting-started"
+                href="/docs/getting-started/"
                 className="inline-flex h-10 items-center justify-center rounded-md bg-fd-primary px-5 text-sm font-medium text-fd-primary-foreground transition-colors hover:bg-fd-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fd-ring"
               >
                 What is Odock?
                 <ArrowRight className="ml-2 size-4" aria-hidden="true" />
               </Link>
               <Link
-                href="/docs/getting-started/quick-start"
+                href="/docs/getting-started/quick-start/"
                 className="inline-flex h-10 items-center justify-center rounded-md border bg-fd-background px-5 text-sm font-medium transition-colors hover:bg-fd-accent hover:text-fd-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fd-ring"
               >
                 Quick start
