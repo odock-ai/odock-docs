@@ -31,7 +31,28 @@ Rate-limit denials add optional scope metadata:
 }
 ```
 
-Some early transport, method, auth, concurrency, and upstream failure paths return a plain text body through `http.Error`. Native provider endpoints can also return provider-native or plain-text upstream errors when the upstream provider rejects the request. Always use the HTTP status code as the source of truth and parse JSON only when the response `Content-Type` is `application/json`.
+Some early transport, method, concurrency, and upstream failure paths return a plain text body through `http.Error`. Native provider endpoints can also return provider-native or plain-text upstream errors when the upstream provider rejects the request. Always use the HTTP status code as the source of truth and parse JSON only when the response `Content-Type` is `application/json`.
+
+## Authentication (key state)
+
+When a virtual API key is rejected, the gateway distinguishes *why* so clients can react precisely. Expired and revoked keys return a specific `code` instead of a generic `unauthorized`:
+
+```json
+{
+  "error": {
+    "code": "api_key_expired",
+    "message": "API key has expired"
+  }
+}
+```
+
+| `code` | Meaning |
+| ------ | ------- |
+| `unauthorized` | The key is missing, malformed, or unknown. |
+| `api_key_expired` | The key exists but has passed its expiry date. |
+| `api_key_revoked` | The key exists but has been revoked. |
+
+All three return HTTP `401`. The same codes are emitted by the unified `/v1/llm/chat` endpoint, the native provider endpoints, the MCP endpoints, and the `validate-key` endpoint.
 
 ## Common LLM Errors
 
@@ -44,7 +65,9 @@ Some early transport, method, auth, concurrency, and upstream failure paths retu
 | `400` | `provider_api_key_not_configured` | The model has no usable upstream provider key. | Attach an active provider API key to the model. |
 | `400` | `provider_type_unsupported` | The configured provider type is not supported by the gateway route. | Use an available or compatible provider type for gateway traffic. |
 | `400` | `provider_not_allowed` | A native endpoint was called with a model configured for another provider family. | Use the matching native endpoint or `/v1/llm/chat`. |
-| `401` | `unauthorized` | The virtual API key is missing, malformed, expired, revoked, or unknown. | Use `Authorization: Bearer ...` with an active Odock virtual key. |
+| `401` | `unauthorized` | The virtual API key is missing, malformed, or unknown. | Use `Authorization: Bearer ...` with an active Odock virtual key. |
+| `401` | `api_key_expired` | The virtual API key has passed its expiry date. | Rotate the key with a future expiry, then retry. |
+| `401` | `api_key_revoked` | The virtual API key has been revoked. | Use an active key, or un-revoke it if appropriate. |
 | `403` | `model_not_allowed` | The key is valid but lacks access to the model. | Grant model access to the API key. |
 | `403` | `provider_disabled` | The model's provider is disabled. | Enable the provider or choose another model. |
 | `403` | `provider_api_key_revoked` | The upstream provider key linked to the model is revoked. | Rotate or replace the provider API key. |
@@ -65,7 +88,9 @@ Some early transport, method, auth, concurrency, and upstream failure paths retu
 | `400` | `mcp_missing_endpoint` | A streamable HTTP or SSE MCP server has no endpoint URL. | Configure `endpointUrl` on the MCP server. |
 | `400` | `mcp_missing_stdio_command` | A STDIO MCP server has no command. | Configure `stdioCommand`. |
 | `400` | `invalid_transport` | The MCP server transport is unsupported. | Use `STREAMABLE_HTTP`, `SSE`, or `STDIO`. |
-| `401` | `unauthorized` | The virtual API key is missing or invalid. | Use an active Odock virtual key. |
+| `401` | `unauthorized` | The virtual API key is missing, malformed, or unknown. | Use an active Odock virtual key. |
+| `401` | `api_key_expired` | The virtual API key has passed its expiry date. | Rotate the key with a future expiry, then retry. |
+| `401` | `api_key_revoked` | The virtual API key has been revoked. | Use an active key, or un-revoke it if appropriate. |
 | `403` | `mcp_not_allowed` | The key lacks access to the MCP server. | Grant MCP access to the API key. |
 | `403` | `mcp_guardrail_block` | MCP tool rules or semantic guardrails blocked the request. | Review MCP access rules and the request payload. |
 | `404` | `mcp_not_found` | The MCP server is disabled or not found. | Check the slug or id and ensure the server is enabled. |
