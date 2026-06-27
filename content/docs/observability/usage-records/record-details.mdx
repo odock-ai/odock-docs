@@ -44,8 +44,8 @@ Below the routing section, breakdown cards render the structured payloads attach
 
 | Card | What it shows |
 | --- | --- |
-| **Billing** | The cost breakdown the calculator produced, with per-token-class amounts and cache discounts when applicable. |
-| **Tokens** | Normalized totals plus any per-class breakdown returned by the provider (input, output, cached, reasoning, audio, image, tool). |
+| **Billing** | The cost breakdown the calculator produced, with per-token-class amounts, cache discounts when applicable, and per-unit costs (`units_cost_usd`) for endpoints billed per unit. |
+| **Tokens** | Normalized totals plus any per-class breakdown returned by the provider (input, output, cached, reasoning, audio, image, tool), and the per-unit quantity (`units` / `unit_kind`) for per-unit endpoints. |
 | **ProviderUsage** | The provider's own usage payload as returned. The same numbers the provider would show in its console. |
 | **Routing** | The routing payload in raw form. The card above this is the structured view of the same data. |
 | **Metadata** | Gateway traceability — plugin executions and durations, safety decisions, and rate-limit stage outcomes. |
@@ -124,6 +124,12 @@ Below the routing section, breakdown cards render the structured payloads attach
 
 
 Each card hides itself when it has nothing to show. A call that failed at auth, for example, has no token, billing, or routing data, so only the metadata card will appear.
+
+### Per-unit usage (e.g. OCR pages)
+
+Some endpoints are billed per unit rather than per token. For these, the Tokens card shows a generic **units** quantity with a **unit_kind** label describing what one unit is, and the Billing card reports the matching `units_cost_usd` / `units_cost_nanos_usd` separately from token and embeddings costs.
+
+For example, a Mistral OCR call records the page count under `units` with `unit_kind: "pages"`, while the underlying provider count (`pages_processed`) stays visible in the ProviderUsage card for reconciliation. The header's **Billable tokens / Cost** still reflects the full charge — the per-unit cost is already included in the total. See [Model Pricing](/docs/models-and-mcp/models/model-pricing) for how the per-unit rate is configured.
 
 ## Typical Investigation
 
