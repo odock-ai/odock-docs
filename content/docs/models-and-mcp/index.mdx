@@ -72,7 +72,7 @@ These four concepts are related, but they are not interchangeable.
 
 | Concept | What it is | Used by the gateway for |
 | --- | --- | --- |
-| Provider | The upstream AI service connection, such as OpenAI, Anthropic, Google, Azure OpenAI, vLLM, or a custom-compatible provider. | Selecting the upstream API family, base URL, timeout, and provider implementation. |
+| Provider | The upstream AI service connection, such as OpenAI, Anthropic, Google, Azure OpenAI, vLLM, Mistral, or a custom-compatible provider. | Selecting the upstream API family, base URL, timeout, and provider implementation. |
 | Provider key | The upstream secret for a provider. | Authenticating from Odock to the upstream provider. It is not given to applications. |
 | Model | The organisation model record that clients request by name. | Resolving the requested model to a provider, upstream slug, provider key, capabilities, pricing, and policies. |
 | MCP server | A governed tool server exposed through `/v1/mcp/{slug}` or `/v1/mcp/{id}`. | Resolving tool traffic to a transport, auth config, tool allow/block rules, pricing, and policies. |

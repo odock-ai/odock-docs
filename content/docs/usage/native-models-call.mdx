@@ -24,7 +24,7 @@ Native endpoint rules:
 
 The tabs below show currently available or compatible provider endpoint shapes. They are examples of supported native integrations and can grow as new providers are added.
 
-<Tabs items={["OpenAI", "Anthropic", "Gemini", "vLLM"]}>
+<Tabs items={["OpenAI", "Anthropic", "Gemini", "vLLM", "Mistral"]}>
 <Tab>
 
 | Method | Endpoint | Use for | SDK base URL | Streaming |
@@ -77,6 +77,22 @@ Gemini-compatible callers can authenticate with `Authorization: Bearer ...`, `x-
 | `POST` | `/v1/vllm/rerank` | vLLM rerank | `https://api.odock.ai` | No |
 
 vLLM endpoints forward raw vLLM-compatible payloads after Odock resolves the model and governance context.
+
+</Tab>
+<Tab>
+
+| Method | Endpoint | Use for | Client base URL | Streaming |
+| ------ | -------- | ------- | --------------- | --------- |
+| `GET` | `/v1/mistral/models` | Mistral model listing | `https://api.odock.ai` | No |
+| `POST` | `/v1/mistral/chat/completions` | Mistral chat completions | `https://api.odock.ai` | Yes |
+| `POST` | `/v1/mistral/fim/completions` | Codestral fill-in-the-middle (code) completions | `https://api.odock.ai` | Yes |
+| `POST` | `/v1/mistral/embeddings` | Mistral embeddings | `https://api.odock.ai` | No |
+| `POST` | `/v1/mistral/moderations` | Mistral moderation / safety classification | `https://api.odock.ai` | No |
+| `POST` | `/v1/mistral/ocr` | Mistral OCR: document or image to per-page markdown | `https://api.odock.ai` | No |
+
+Mistral chat completions and embeddings are OpenAI-shaped, so the OpenAI SDK works by pointing its `base_url` at `https://api.odock.ai/v1/mistral`. FIM, moderation, and OCR are Mistral-native: send raw JSON with the virtual API key as a bearer token. There is no Mistral Responses API, so bind chat to chat completions rather than the Responses endpoint.
+
+OCR is billed per page from the `usage_info.pages_processed` count the upstream returns. See [Model Pricing](/docs/models-and-mcp/models/model-pricing).
 
 </Tab>
 </Tabs>
@@ -386,6 +402,82 @@ curl "${ODOCK_GATEWAY_URL:-https://api.odock.ai}/v1/vllm/embeddings" \
     "input": "Embeddings traffic is governed by Odock."
   }'
 ```
+
+</Tab>
+</Tabs>
+
+## Mistral-Compatible Calls
+
+Chat and embeddings are OpenAI-shaped, so the OpenAI SDK works by pointing `base_url` at `/v1/mistral`. FIM, moderation, and OCR are Mistral-native and are called with raw JSON.
+
+<Tabs items={["Chat SDK", "Codestral FIM", "Moderation", "OCR"]}>
+<Tab>
+
+```python
+import os
+from openai import OpenAI
+
+client = OpenAI(
+    api_key=os.environ["ODOCK_API_KEY"],
+    base_url=os.environ.get("ODOCK_MISTRAL_BASE_URL", "https://api.odock.ai/v1/mistral"),
+)
+
+# Bind to chat completions; Mistral has no Responses API.
+response = client.chat.completions.create(
+    model=os.environ.get("ODOCK_MODEL", "mistral-small-latest"),
+    messages=[{"role": "user", "content": "Summarize the gateway in one sentence."}],
+    max_tokens=120,
+    stream=False,
+)
+
+print(response.choices[0].message.content)
+```
+
+</Tab>
+<Tab>
+
+```bash
+curl "${ODOCK_GATEWAY_URL:-https://api.odock.ai}/v1/mistral/fim/completions" \
+  -H "Authorization: Bearer $ODOCK_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "'"${ODOCK_CODE_MODEL:-codestral-latest}"'",
+    "prompt": "def fibonacci(n):\n    ",
+    "suffix": "\n    return result",
+    "max_tokens": 128
+  }'
+```
+
+</Tab>
+<Tab>
+
+```bash
+curl "${ODOCK_GATEWAY_URL:-https://api.odock.ai}/v1/mistral/moderations" \
+  -H "Authorization: Bearer $ODOCK_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "'"${ODOCK_MODERATION_MODEL:-mistral-moderation-latest}"'",
+    "input": "Text to classify for safety categories."
+  }'
+```
+
+</Tab>
+<Tab>
+
+```bash
+curl "${ODOCK_GATEWAY_URL:-https://api.odock.ai}/v1/mistral/ocr" \
+  -H "Authorization: Bearer $ODOCK_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "'"${ODOCK_OCR_MODEL:-mistral-ocr-latest}"'",
+    "document": {
+      "type": "document_url",
+      "document_url": "https://arxiv.org/pdf/2201.04234"
+    }
+  }'
+```
+
+The OCR response returns extracted markdown per page plus `usage_info.pages_processed`. To OCR an image instead of a document, send `"type": "image_url"` with an `"image_url"`. OCR is billed per page, not per token.
 
 </Tab>
 </Tabs>

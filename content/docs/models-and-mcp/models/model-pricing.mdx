@@ -25,11 +25,17 @@ Pricing can include input text cost, output text cost, image cost, audio cost, v
 | Output video | Cost for generated video output tokens or units. | Video generation or multimodal responses with video output. |
 | Reasoning | Cost for reasoning or thinking tokens reported by the provider. | Reasoning models that expose a separate reasoning token count. |
 | Cached input discount | Percentage discount applied to cached input tokens. | Providers that report cache hits or cached prompt tokens. |
-| Embeddings | Cost for embedding tokens. | Embedding endpoints where usage is counted separately from text generation. |
+| Embeddings | Cost for embedding tokens, or for other per-unit usage billed through the units rate. | Embedding endpoints where usage is counted separately from text generation, and per-unit endpoints such as OCR (see note below). |
 | Fine-tuning training | Cost for tokens used while training or fine-tuning a model. | Fine-tuning workflows when training cost is tracked. |
 | Fine-tuning usage | Cost for tokens used by a fine-tuned model. | Runtime calls to fine-tuned models with separate rates. |
 | Tool pricing | Optional cost metadata for tool definitions, tool inputs, or tool outputs. | Model calls that include tools and where tool-related token costs need separate reporting. |
 | Notes | Human-readable pricing notes. | Explaining provider-specific assumptions, contract pricing, or known limitations. |
+
+## Per-Page Pricing (OCR)
+
+Some endpoints are billed per unit rather than per token. Mistral OCR (`ocr` model type) is billed per page: the gateway reads `usage_info.pages_processed` from the provider response and prices it through the embeddings (units) rate, where one unit equals one page.
+
+To bill Mistral OCR at its list price of about `$1` per `1000` pages, set the model's embeddings cost so one page costs `$0.001`. Adding `mistral-ocr-latest` from the model catalog configures this automatically. In the resulting usage record, the page count appears as the billable quantity and the cost appears under the embeddings cost field.
 
 ## Usage Calculation
 

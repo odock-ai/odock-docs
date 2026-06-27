@@ -12,7 +12,7 @@ Odock is a runtime gateway for LLM and MCP traffic. Applications send requests t
 
 Use the gateway in one of two ways:
 
-- **Native provider endpoints** keep the request and response shape of a provider family. The examples below cover the currently available or compatible provider shapes, such as OpenAI, Anthropic, Gemini, and vLLM.
+- **Native provider endpoints** keep the request and response shape of a provider family. The examples below cover the currently available or compatible provider shapes, such as OpenAI, Anthropic, Gemini, vLLM, and Mistral.
 - **Unified endpoint** uses Odock's provider-neutral `/v1/llm/chat` surface. It accepts an OpenAI-compatible chat request shape and can route across configured providers when routing is enabled.
 
 The [Quick Start](/docs/getting-started/quick-start) shows the shortest OpenAI-compatible migration. This page is the detailed reference for gateway usage.
@@ -33,6 +33,7 @@ Some native clients expect the base URL without `/v1`:
 | Anthropic SDK | `https://api.odock.ai` |
 | Gemini HTTP clients | `https://api.odock.ai` |
 | vLLM HTTP clients | `https://api.odock.ai` plus `/v1/vllm/...` paths |
+| Mistral (OpenAI SDK or HTTP) | `https://api.odock.ai/v1/mistral` for chat/embeddings; `https://api.odock.ai` plus `/v1/mistral/...` paths |
 
 ## Authentication
 
@@ -71,7 +72,7 @@ For `/v1/llm/chat`, the endpoint is provider-neutral. It accepts OpenAI-compatib
 
 The provider tabs below document the endpoint shapes currently available or compatible in the gateway. They are examples of supported provider families, not a permanent limit on future providers.
 
-<Tabs items={["Unified", "OpenAI", "Anthropic", "Gemini", "vLLM", "MCP"]}>
+<Tabs items={["Unified", "OpenAI", "Anthropic", "Gemini", "vLLM", "Mistral", "MCP"]}>
 <Tab>
 
 | Method | Endpoint | Request shape | Response shape | Streaming |
@@ -133,6 +134,20 @@ Use these endpoints for Gemini-compatible HTTP clients. The `{model}` path segme
 | `POST` | `/v1/vllm/rerank` | vLLM rerank | vLLM raw response | No |
 
 Use these endpoints when the upstream model is configured with a vLLM provider and the client expects vLLM-compatible payloads.
+
+</Tab>
+<Tab>
+
+| Method | Endpoint | Request shape | Response shape | Streaming |
+| ------ | -------- | ------------- | -------------- | --------- |
+| `GET` | `/v1/mistral/models` | None | Mistral models list | No |
+| `POST` | `/v1/mistral/chat/completions` | OpenAI-compatible chat | Mistral raw response | Yes |
+| `POST` | `/v1/mistral/fim/completions` | Codestral FIM (`prompt`, `suffix`) | Mistral raw response | Yes |
+| `POST` | `/v1/mistral/embeddings` | OpenAI-compatible embeddings | Mistral raw response | No |
+| `POST` | `/v1/mistral/moderations` | Mistral moderation (`input`) | Mistral classification | No |
+| `POST` | `/v1/mistral/ocr` | Mistral OCR (`document`) | Per-page markdown + `usage_info` | No |
+
+Use these endpoints when the upstream model is configured with a Mistral provider. Chat and embeddings are OpenAI-shaped; FIM, moderation, and OCR are Mistral-native. OCR is billed per page.
 
 </Tab>
 <Tab>
@@ -227,7 +242,7 @@ print(response.json()["choices"][0]["message"]["content"])
 
 ## Streaming
 
-Streaming remains available on chat-style OpenAI, Anthropic, Gemini, vLLM, and unified endpoints. Use streaming when your client can consume server-sent events.
+Streaming remains available on chat-style OpenAI, Anthropic, Gemini, vLLM, Mistral, and unified endpoints. Use streaming when your client can consume server-sent events. Mistral chat and Codestral FIM completions support streaming.
 
 <Tabs items={["OpenAI SDK", "curl", "Unified httpx"]}>
 <Tab>

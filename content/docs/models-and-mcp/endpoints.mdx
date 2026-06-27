@@ -14,7 +14,7 @@ For complete API examples, see [Usage](/docs/usage), [Native Models call](/docs/
 
 | Family | Use when | Example |
 | --- | --- | --- |
-| Native provider endpoints | You want SDK compatibility with a provider family. | OpenAI-compatible `/v1/chat/completions`, Anthropic-compatible `/v1/messages`, Gemini-compatible `/v1beta/models/{model}:generateContent`, vLLM-compatible `/v1/vllm/...`. |
+| Native provider endpoints | You want SDK compatibility with a provider family. | OpenAI-compatible `/v1/chat/completions`, Anthropic-compatible `/v1/messages`, Gemini-compatible `/v1beta/models/{model}:generateContent`, vLLM-compatible `/v1/vllm/...`, Mistral-compatible `/v1/mistral/...`. |
 | Unified multi-model endpoint | You want a provider-neutral Odock chat endpoint and optional routing across configured models. | `/v1/llm/chat`. |
 | MCP endpoint | You want to proxy MCP tool traffic through Odock governance. | `/v1/mcp/{slug}` or `/v1/mcp/{id}`. |
 
@@ -30,6 +30,7 @@ Native endpoints keep the provider's familiar request and response shape. This i
 | Anthropic-compatible | `/v1/messages` | Use the Odock gateway root expected by the Anthropic client. |
 | Gemini-compatible | `/v1beta/models/{model}:generateContent` | The `{model}` path segment is the Odock model name. |
 | vLLM-compatible | `/v1/vllm/chat/completions`, `/v1/vllm/embeddings`, and other vLLM paths | Use models configured with a vLLM provider. |
+| Mistral-compatible | `/v1/mistral/chat/completions`, `/v1/mistral/fim/completions`, `/v1/mistral/embeddings`, `/v1/mistral/moderations`, `/v1/mistral/ocr`, `/v1/mistral/models` | Use models configured with a Mistral provider. Chat and embeddings are OpenAI-shaped; FIM, moderation, and OCR are Mistral-native. |
 
 Native endpoints are provider-family aware. If an OpenAI-compatible endpoint receives a model configured for another provider family, Odock can reject the request because that endpoint cannot safely transform the request to the wrong provider shape.
 

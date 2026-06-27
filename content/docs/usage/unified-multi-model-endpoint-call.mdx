@@ -23,7 +23,7 @@ This endpoint accepts an OpenAI-compatible chat request shape:
 - `metadata`
 - `stream`
 
-It is provider-neutral. If `provider` is omitted, Odock resolves the provider from the configured model and any active routing policy. If `provider` is present, it can pin the request to `openai`, `anthropic`, `gemini`, or `vllm` when that matches the selected model configuration.
+It is provider-neutral. If `provider` is omitted, Odock resolves the provider from the configured model and any active routing policy. If `provider` is present, it can pin the request to `openai`, `anthropic`, `gemini`, `vllm`, or `mistral` when that matches the selected model configuration.
 
 For streaming, `/v1/llm/chat` returns OpenAI-compatible `chat.completion.chunk` SSE events, regardless of the upstream provider. For unary responses, it returns Odock's normalized JSON response.
 
