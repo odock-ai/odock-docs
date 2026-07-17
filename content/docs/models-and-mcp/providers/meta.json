@@ -3,6 +3,7 @@
   "icon": "Plug",
   "pages": [
     "index",
+    "huggingface",
     "activate-provider",
     "edit-provider-details",
     "add-provider-key",

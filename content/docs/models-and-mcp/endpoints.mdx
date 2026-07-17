@@ -31,6 +31,7 @@ Native endpoints keep the provider's familiar request and response shape. This i
 | Gemini-compatible | `/v1beta/models/{model}:generateContent` | The `{model}` path segment is the Odock model name. |
 | vLLM-compatible | `/v1/vllm/chat/completions`, `/v1/vllm/embeddings`, and other vLLM paths | Use models configured with a vLLM provider. |
 | Mistral-compatible | `/v1/mistral/chat/completions`, `/v1/mistral/fim/completions`, `/v1/mistral/embeddings`, `/v1/mistral/moderations`, `/v1/mistral/ocr`, `/v1/mistral/models` | Use models configured with a Mistral provider. Chat and embeddings are OpenAI-shaped; FIM, moderation, and OCR are Mistral-native. |
+| Hugging Face-compatible | `/v1/huggingface/chat/completions`, `/v1/huggingface/models`, `/v1/huggingface/feature-extraction`, `/v1/huggingface/text-to-image`, `/v1/huggingface/text-to-video`, `/v1/huggingface/speech-to-text`, `/v1/huggingface/jobs` | Use models configured with a Hugging Face provider. Chat/models are OpenAI-shaped; the per-task routes are JSON in/out and billed per output unit (inputs, images, videos, transcriptions). `/v1/huggingface/jobs` polls async tasks in `return_job` mode. |
 
 Native endpoints are provider-family aware. If an OpenAI-compatible endpoint receives a model configured for another provider family, Odock can reject the request because that endpoint cannot safely transform the request to the wrong provider shape.
 

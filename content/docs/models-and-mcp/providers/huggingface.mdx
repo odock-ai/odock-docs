@@ -1,0 +1,384 @@
+---
+title: Hugging Face
+icon: Network
+description: Connect Hugging Face Inference Providers — an OpenAI-compatible router over hundreds of open models and many upstream providers.
+---
+
+# Hugging Face
+
+[Hugging Face Inference Providers](https://huggingface.co/docs/inference-providers) is a single, OpenAI-compatible router that gives you access to hundreds of open-weight models served by many upstream infrastructure providers (Cerebras, Groq, Together, Fireworks, SambaNova, Fal, Replicate, Novita, and more) behind one token and one base URL.
+
+In Odock, a Hugging Face provider behaves like any other upstream: you store one Hugging Face token as an encrypted provider key, create models that map your client-facing model name to a Hub model id, and call them through the gateway with a virtual API key.
+
+<Callout type="info">
+Hugging Face is itself a router *of* providers. A single Hub model id such as `openai/gpt-oss-120b` can be served by several upstream providers; Hugging Face picks one and bills you the provider's rate with no extra markup. See [Model id & provider selection](#model-id--provider-selection).
+</Callout>
+
+## Connection
+
+| Setting | Value |
+| --- | --- |
+| Provider type | `HUGGINGFACE` |
+| Default base URL | `https://router.huggingface.co` |
+| Auth | `Authorization: Bearer <HF_TOKEN>` |
+| Token | A fine-grained token with **Make calls to Inference Providers** permission ([create one](https://huggingface.co/settings/tokens/new?ownUserPermissions=inference.serverless.write&tokenType=fineGrained)). |
+
+The token is encrypted before storage and resolved only when the gateway calls upstream, exactly like every other [provider key](/docs/models-and-mcp/providers/add-provider-key).
+
+## Endpoints
+
+Hugging Face exposes an **OpenAI-compatible** surface for chat plus task-specific routes for everything else. Odock maps these to native gateway endpoints under `/v1/huggingface/...`.
+
+| Gateway endpoint | Method | Purpose | Billing |
+| --- | --- | --- | --- |
+| `/v1/huggingface/chat/completions` | `POST` | OpenAI-compatible chat (streaming supported) | per token |
+| `/v1/huggingface/models` | `GET` | List available models (per-provider pricing/latency) | — |
+| `/v1/huggingface/feature-extraction` | `POST` | Embeddings | per **input** |
+| `/v1/huggingface/text-to-image` | `POST` | Image generation | per **image** |
+| `/v1/huggingface/text-to-video` | `POST` | Video generation (async-capable) | per **video** |
+| `/v1/huggingface/speech-to-text` | `POST` | Speech transcription (ASR) | per **transcription** |
+| `/v1/huggingface/jobs` | `POST` | Poll an async job in `return_job` mode | — (no usage record) |
+
+- **Chat / models** are OpenAI-shaped and hit `router.huggingface.co/v1/...` — point an OpenAI SDK at the gateway's `/v1/huggingface` base URL.
+- **Per-task routes** proxy to the model's chosen inference provider — `hf-inference/models/{model}` by default, or `{provider}/{providerModelId}` when the model's slug carries a `:provider` suffix (see [Choosing the task provider](#choosing-the-task-provider)).
+- **`/v1/huggingface/jobs`** exists only for the `return_job` [async mode](#async-delivery-modes-text-to-video).
+
+<Callout type="warn">
+The OpenAI-compatible endpoint (`/v1/chat/completions`, `/v1/models`) is **chat only**. Feature extraction (embeddings), text-to-image, text-to-video, and speech-to-text use Hugging Face's per-task routes, return no token usage, and are billed **per output unit** rather than per token — see [Usage & billing](#usage--billing).
+</Callout>
+
+Chat and model listing are OpenAI-shaped, so an application can target them by pointing an OpenAI SDK at the Odock gateway `/v1/huggingface` base URL. The per-task routes are **JSON in, JSON out**: the request body is `{"model": "...", "inputs": ...}` (plus optional task `parameters`), and binary output (images, video, audio) comes back as a base64 envelope:
+
+```json
+{ "model": "...", "mime_type": "image/png", "data": "<base64>", "encoding": "base64" }
+```
+
+JSON outputs (embedding vectors, ASR transcription) pass through unchanged. For the endpoint model, see [Endpoints](/docs/models-and-mcp/endpoints).
+
+<Callout type="info">
+Per-task routes default to Hugging Face's first-party `hf-inference` provider. Models served by **any other provider** (fal-ai, Replicate, Nebius, Together, Novita, …) are reached by adding a `:provider` suffix to the model's upstream slug — see [Choosing the task provider](#choosing-the-task-provider).
+</Callout>
+
+## Choosing the task provider
+
+Per-task routing depends on which inference provider serves the model. Select it with a **`:provider` suffix** on the model's upstream slug (the same idea as the chat suffix, but resolved by Odock rather than the chat router):
+
+| Upstream slug | Routes to |
+| --- | --- |
+| `sentence-transformers/all-MiniLM-L6-v2` | `hf-inference` (default) |
+| `black-forest-labs/FLUX.1-dev:fal-ai` | `fal-ai` |
+| `Qwen/Qwen-Image:nebius` | `nebius` |
+| `<model>:<provider>` | any provider that serves the model |
+
+The provider name is whatever the model's page lists under **Inference Providers** (`fal-ai`, `replicate`, `nebius`, `together`, `novita`, …). Routing is **generic** — one engine handles all of them:
+
+- **`hf-inference`** (default) — the synchronous, HF-normalized task API. Best for embeddings/ASR and any model `hf-inference` hosts. No Hub lookup.
+- **Any other provider** — Odock resolves the model's [provider model id](https://huggingface.co/docs/inference-providers/hub-api) from the Hub (`inferenceProviderMapping`, cached) and routes to `router.huggingface.co/{provider}/{providerModelId}` with the normalized request mapped to the common provider keys (`prompt` for generation, `audio_url` for ASR, `inputs` for embeddings). Then it:
+  1. **auto-detects async jobs** — if the provider returns a queue handle (`request_id` / `status_url` / `response_url`), Odock **polls server-side** until it completes, so the client still makes one blocking call (bounded by the model's request timeout);
+  2. **downloads returned media** — if the result is a URL (image/video/audio), Odock fetches it and base64-envelopes the bytes; JSON results (embeddings, transcription) pass through.
+
+This covers providers that follow the common router patterns. Provider-specific quirks (e.g. fal-ai's async queue hint) live in a small data table in the provider package — adding a provider's quirk is a one-line change, not new routing code.
+
+The client-facing model **name** stays clean (e.g. `black-forest-labs/FLUX.1-dev`); only the upstream slug carries the suffix. The catalog's image/video sample models already ship with `:fal-ai`.
+
+<Callout type="warn">
+A model whose slug names a provider the Hub doesn't list for that model returns a clear `model … has no inference-provider mapping for "<provider>"` error — check the model page's **Inference Providers** section for valid provider names.
+</Callout>
+
+## Model id & provider selection
+
+A Hugging Face model is identified by its Hub id (`<org>/<model>`, e.g. `deepseek-ai/DeepSeek-R1`). You can steer which upstream provider serves the request with a suffix on the model id:
+
+| Suffix | Effect |
+| --- | --- |
+| _(none)_ / `:fastest` | Highest throughput provider (default). |
+| `:cheapest` | Lowest price-per-output-token provider. |
+| `:preferred` | First available provider in your Hugging Face account preference order. |
+| `:<provider>` | Force a specific provider, e.g. `openai/gpt-oss-120b:sambanova`. |
+
+Set this in the model's upstream slug when you [add a model](/docs/models-and-mcp/providers/add-models-from-provider), so your client-facing model name stays stable while you tune cost/latency upstream.
+
+## Usage & billing
+
+Hugging Face passes the upstream provider's rate through with **no markup**, and it ships a generous free tier plus PRO/Team credits. How Odock meters a call depends on the task:
+
+- **Chat** returns a standard OpenAI `usage` object (`prompt_tokens`, `completion_tokens`, `total_tokens`), metered per token like any OpenAI-compatible model. Configure per-token pricing as usual — see [Model pricing](/docs/models-and-mcp/models/model-pricing).
+- **Per-task routes** (feature extraction, text-to-image, text-to-video, speech-to-text) return no usage object, so Odock derives a deterministic **count of output items** and bills it through the generic per-unit billing dimension (`units` / `unit_kind`) — the same mechanism used for [Mistral OCR pages](/docs/models-and-mcp/models/model-pricing). The charge appears under `units_cost_usd` on the [usage record](/docs/observability/usage-records/record-details).
+
+| Task | `unit_kind` | How `units` is counted |
+| --- | --- | --- |
+| feature-extraction | `inputs` | Number of inputs in the request (a string = 1; a list = its length). |
+| text-to-image | `images` | Requested image count (`n` / `num_images` / `parameters.num_images_per_prompt`), default 1. |
+| text-to-video | `videos` | Requested clip count (`n` / `num_outputs`), default 1. |
+| speech-to-text | `transcriptions` | 1 per request (HF ASR returns no audio duration). |
+
+To price a per-task model, set its pricing to a **per-unit rate** with the matching `unit_kind` (the [model catalog](/docs/models-and-mcp/models/add-models-from-catalog) ships defaults for the sample models above). For example, `$0.03` per image with `unit_kind: images` bills two generated images as `$0.06`.
+
+`GET /v1/huggingface/models` returns per-provider pricing, context length, latency, and throughput, which is useful when deciding how to price an Odock model that wraps a Hub model.
+
+## Async delivery modes (text-to-video)
+
+Some providers run long tasks (notably **text-to-video**) on an async queue: submit returns a job id, and the result is fetched after the render completes. Odock supports two delivery modes, set with the **`PROVIDER_HUGGINGFACE_ASYNC_MODE`** variable in the gateway's `.env` (default `wait`):
+
+| Mode | Behavior | Trade-off |
+| --- | --- | --- |
+| `wait` *(default)* | Odock submits and **polls the provider's queue server-side** until the result is ready, then returns the media in one blocking call. Matches the `huggingface_hub` client. | One simple call for the client, but the connection is held for the whole render (minutes). Raise `PROVIDER_HUGGINGFACE_TIMEOUT` / `HTTP_WRITE_TIMEOUT` for long clips. |
+| `return_job` | Odock submits, **bills the unit**, and returns the job handle immediately. The client then polls `/v1/huggingface/jobs` until the result is ready. | No long-held connection; the client drives polling. |
+
+In `return_job` mode, a text-to-video call returns:
+
+```json
+{ "request_id": "019f…", "status": "IN_QUEUE", "provider": "fal-ai",
+  "async_mode": "return_job", "poll_endpoint": "/v1/huggingface/jobs" }
+```
+
+Poll it with your virtual API key (Odock proxies the authenticated status/result fetch and downloads the media when ready):
+
+```bash
+curl https://your-odock-gateway/v1/huggingface/jobs \
+  -H "Authorization: Bearer sk_your_virtual_key" \
+  -H "Content-Type: application/json" \
+  -d '{"model":"<your video model>","request_id":"019f…"}'
+# in progress -> {"status":"IN_PROGRESS"}
+# done        -> {"model":"…","mime_type":"video/mp4","data":"<base64>","encoding":"base64"}
+```
+
+The **unit is billed once at submit**; the `/v1/huggingface/jobs` status polls **create no usage record at all** (so repeated polling doesn't flood Usage Records with zero-cost rows). Sync tasks (image, embeddings, ASR) are unaffected by this setting — only async queue tasks use it.
+
+## Gateway environment variables
+
+These are read from the gateway's `.env` at startup. The org's stored provider key and per-model upstream overrides take precedence per request — these are deployment-wide defaults.
+
+| Variable | Default | Purpose |
+| --- | --- | --- |
+| `PROVIDER_HUGGINGFACE_BASE_URL` | `https://router.huggingface.co` | Router root. A per-model upstream base URL overrides it. |
+| `PROVIDER_HUGGINGFACE_TIMEOUT` | `300s` | Upstream HTTP timeout. Higher than other providers because synchronous image/video generation can take minutes. Raise for heavy video models. |
+| `PROVIDER_HUGGINGFACE_API_KEY` | _(unset)_ | Fallback HF token (also reads `HF_TOKEN`). Normally unused — each org supplies its own encrypted provider key. |
+| `PROVIDER_HUGGINGFACE_ASYNC_MODE` | `wait` | Async task delivery: `wait` (block + return media) or `return_job` (return a job handle to poll). See [Async delivery modes](#async-delivery-modes-text-to-video). |
+
+```bash
+# odock-server/.env
+#PROVIDER_HUGGINGFACE_BASE_URL=https://router.huggingface.co
+#PROVIDER_HUGGINGFACE_TIMEOUT=300s
+#PROVIDER_HUGGINGFACE_ASYNC_MODE=wait
+```
+
+<Callout type="info">
+For long `wait`-mode video, also raise `HTTP_WRITE_TIMEOUT` (the gateway's HTTP server response-write timeout) so the held connection isn't closed before the render finishes. In `return_job` mode this is unnecessary — each call returns quickly.
+</Callout>
+
+## Hugging Face MCP server
+
+Separately from inference, Hugging Face runs an **official MCP server** at `https://huggingface.co/mcp` (streamable HTTP, authenticated with an HF token). It exposes tools to search and explore the Hub (models, datasets, Spaces, papers), search the documentation in natural language, and run community [Gradio Spaces](https://huggingface.co/spaces) as callable tools.
+
+You add this to Odock as a normal MCP server record — not as a provider — so the same governance applies (access grants, tool rules, scoping, pricing, budgets, guardrails, usage records):
+
+| Setting | Value |
+| --- | --- |
+| Transport | `STREAMABLE_HTTP` |
+| URL | `https://huggingface.co/mcp` |
+| Auth | `Authorization: Bearer <HF_TOKEN>` |
+
+See [Add an MCP server manually](/docs/models-and-mcp/mcp-servers/add-manually) and [Streamable HTTP transport](/docs/models-and-mcp/mcp-servers/streamable-http-transport). The server is open source at [huggingface/hf-mcp-server](https://github.com/huggingface/hf-mcp-server).
+
+## Workflow
+
+<Steps>
+
+<Step>
+[Activate the Hugging Face provider](/docs/models-and-mcp/providers/activate-provider) from the provider catalog.
+</Step>
+
+<Step>
+[Add your Hugging Face token](/docs/models-and-mcp/providers/add-provider-key) as the encrypted provider key.
+</Step>
+
+<Step>
+[Add a model](/docs/models-and-mcp/providers/add-models-from-provider) mapping a client-facing name to a Hub model id (optionally with a `:provider` suffix).
+</Step>
+
+<Step>
+Set [model pricing](/docs/models-and-mcp/models/model-pricing) — per-token for chat, or a per-unit rate for media/embedding tasks.
+</Step>
+
+<Step>
+[Grant the model to a virtual API key](/docs/models-and-mcp/models/grant-model-to-api-key) and call it through the gateway.
+</Step>
+
+</Steps>
+
+## Tutorial: set up Hugging Face and send your first prompt
+
+This walks the whole path end to end — from creating a Hugging Face token to prompting a chat model and running a per-unit task through Odock.
+
+### 1. Create a Hugging Face token
+
+<Steps>
+
+<Step>
+Sign in at [huggingface.co](https://huggingface.co) (a free account works; PRO/Team get more inference credits).
+</Step>
+
+<Step>
+Open [**Settings → Access Tokens → Create token**](https://huggingface.co/settings/tokens/new?ownUserPermissions=inference.serverless.write&tokenType=fineGrained), choose **Fine-grained**, and enable the **Make calls to Inference Providers** permission.
+</Step>
+
+<Step>
+Copy the token (`hf_...`). You will paste it into Odock as the provider key — you never put it in your application.
+</Step>
+
+<Step>
+*(Optional)* Under [**Settings → Inference Providers**](https://hf.co/settings/inference-providers), set your provider preference order. Odock can target it later with the `:preferred` model suffix.
+</Step>
+
+</Steps>
+
+### 2. Configure the provider in Odock
+
+<Steps>
+
+<Step>
+Open your organisation → **Providers** → activate **Hugging Face**. The base URL defaults to `https://router.huggingface.co`.
+</Step>
+
+<Step>
+Open the provider and [add a provider key](/docs/models-and-mcp/providers/add-provider-key) — paste your `hf_...` token. It is encrypted in the browser before it is stored.
+</Step>
+
+<Step>
+[Add models from the catalog](/docs/models-and-mcp/models/add-models-from-catalog). The Hugging Face catalog ships a chat model (`openai/gpt-oss-120b`) and one model per task (embeddings, image, video, ASR) with sensible default pricing. Add the ones you need. The image/video sample models route through **fal-ai** (their upstream slug carries the `:fal-ai` suffix); embeddings/ASR use the default `hf-inference`. See [Choosing the task provider](#choosing-the-task-provider).
+</Step>
+
+<Step>
+*(Optional)* Tune a model's pricing — per-token for chat, or a per-unit rate (`unit_kind` + amount) for the task models. See [Model pricing](/docs/models-and-mcp/models/model-pricing).
+</Step>
+
+<Step>
+Create a [virtual API key](/docs/management/virtual-api-keys) and [grant it access](/docs/models-and-mcp/models/grant-model-to-api-key) to those models. This `sk_...` key is what your application uses.
+</Step>
+
+</Steps>
+
+### 3. Prompt a chat model
+
+Point the OpenAI SDK at the gateway's `/v1/huggingface` base URL — chat is fully OpenAI-compatible.
+
+```python
+from openai import OpenAI
+
+client = OpenAI(
+    base_url="https://your-odock-gateway/v1/huggingface",
+    api_key="sk_your_virtual_key",  # an Odock virtual API key, not your HF token
+)
+
+resp = client.chat.completions.create(
+    model="openai/gpt-oss-120b",          # your Odock model name
+    messages=[{"role": "user", "content": "In one sentence, what is an API gateway?"}],
+)
+print(resp.choices[0].message.content)
+```
+
+The equivalent cURL:
+
+```bash
+curl https://your-odock-gateway/v1/huggingface/chat/completions \
+  -H "Authorization: Bearer sk_your_virtual_key" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "openai/gpt-oss-120b",
+    "messages": [{"role": "user", "content": "Hello!"}]
+  }'
+```
+
+Streaming works too — add `"stream": true` (and `stream_options: {include_usage: true}` to get token usage on the final chunk).
+
+### 4. Run a per-unit task
+
+The task routes are plain JSON. Each request body is `{"model": "...", "inputs": ...}` plus optional `parameters`.
+
+**Feature-extraction (embeddings)** — billed per input:
+
+```bash
+curl https://your-odock-gateway/v1/huggingface/feature-extraction \
+  -H "Authorization: Bearer sk_your_virtual_key" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "sentence-transformers/all-MiniLM-L6-v2",
+    "inputs": ["an API gateway routes requests", "embeddings are vectors"]
+  }'
+# -> [[...], [...]]   (2 inputs -> 2 units billed)
+```
+
+**Text-to-image** — billed per image; binary output is base64-enveloped:
+
+```bash
+curl https://your-odock-gateway/v1/huggingface/text-to-image \
+  -H "Authorization: Bearer sk_your_virtual_key" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "black-forest-labs/FLUX.1-dev",
+    "inputs": "a serene lake at sunset, photorealistic"
+  }'
+# -> { "model": "...", "mime_type": "image/png", "data": "<base64>", "encoding": "base64" }
+```
+
+Decode the image in your client:
+
+```python
+import base64, httpx
+
+r = httpx.post(
+    "https://your-odock-gateway/v1/huggingface/text-to-image",
+    headers={"Authorization": "Bearer sk_your_virtual_key"},
+    json={"model": "black-forest-labs/FLUX.1-dev", "inputs": "a red bicycle"},
+    timeout=120,
+)
+env = r.json()
+open("out.png", "wb").write(base64.b64decode(env["data"]))
+```
+
+**Speech-to-text (ASR)** — billed per transcription; `inputs` is an audio URL or base64 data URI:
+
+```bash
+curl https://your-odock-gateway/v1/huggingface/speech-to-text \
+  -H "Authorization: Bearer sk_your_virtual_key" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "openai/whisper-large-v3",
+    "inputs": "https://example.com/audio.flac"
+  }'
+# -> { "text": "..." }
+```
+
+**Text-to-video** — billed per clip. Video generation is slow (minutes), so behavior depends on the [async mode](#async-delivery-modes-text-to-video):
+
+```bash
+curl https://your-odock-gateway/v1/huggingface/text-to-video \
+  -H "Authorization: Bearer sk_your_virtual_key" \
+  -H "Content-Type: application/json" \
+  -d '{"model":"genmo/mochi-1-preview","inputs":"a timelapse of clouds at sunset"}'
+
+# wait mode (default): blocks until done -> {"mime_type":"video/mp4","data":"<base64>",...}
+# return_job mode: returns immediately -> {"request_id":"…","status":"IN_QUEUE","poll_endpoint":"/v1/huggingface/jobs"}
+#   then poll until ready:
+#   curl .../v1/huggingface/jobs -H "Authorization: Bearer sk_…" \
+#     -d '{"model":"genmo/mochi-1-preview","request_id":"…"}'
+```
+
+### 5. Verify billing
+
+Open **Usage Records** in your organisation. Chat calls show token costs; task calls show the per-unit charge — the **Tokens** card reports `units` / `unit_kind` and the **Billing** card reports `units_cost_usd`. See [Record details](/docs/observability/usage-records/record-details#per-unit-usage-eg-ocr-pages).
+
+## Troubleshooting
+
+| Symptom | What to check |
+| --- | --- |
+| `401`/`403` from upstream | The token needs the **Make calls to Inference Providers** permission. Rotate the provider key and retry. |
+| `401 Authentication is required` on text-to-video, but image works | The async queue needs a **full-scope** Inference Providers token. A token (or fal credit balance) that's fine for sync tasks can still be rejected by the queue. Use the funded, full-scope `hf_…` token as the provider key. |
+| Model not available | The Hub model may not be served by any provider, or not by the one you pinned with `:<provider>`. Try `:fastest` or another provider. |
+| Cost looks wrong on media tasks | Media/embedding tasks bill per unit. Confirm the model has a `unit_kind` and per-unit rate, not a per-token rate. |
+| Task route returns `404`/`410`/`503` | The model isn't served by the chosen provider. If the slug has no suffix it tries `hf-inference`; add a `:<provider>` suffix (e.g. `:fal-ai`, `:replicate`, `:nebius`) for partner-hosted models. See [Choosing the task provider](#choosing-the-task-provider). |
+| `model … has no inference-provider mapping` | The Hub doesn't list that model under the requested provider. Check the model page's **Inference Providers** section and use a provider it actually supports. |
+| Async task times out (`wait` mode) | The render exceeded the held-connection budget. Raise `PROVIDER_HUGGINGFACE_TIMEOUT` and `HTTP_WRITE_TIMEOUT`, or switch to `return_job` mode so the client polls instead. |
+| `/v1/huggingface/jobs` keeps returning `IN_PROGRESS` | The job is still rendering — keep polling. If it never completes, confirm you're polling with the **same `model`** you submitted with (it resolves the provider key + request URL). |
+| Provider mismatch error | The endpoint is provider-family aware. Use the `/v1/huggingface/...` endpoint with a model configured for the Hugging Face provider. |

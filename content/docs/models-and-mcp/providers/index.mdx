@@ -5,7 +5,7 @@ description: Connect upstream AI providers, store provider keys safely, and crea
 
 # Providers
 
-Providers are the upstream AI services that Odock can call on your behalf. Examples include OpenAI, Anthropic, Google Gemini, Azure OpenAI, vLLM, Mistral, and custom-compatible providers.
+Providers are the upstream AI services that Odock can call on your behalf. Examples include OpenAI, Anthropic, Google Gemini, Azure OpenAI, vLLM, Mistral, Hugging Face, and custom-compatible providers.
 
 A provider is not the same as a model. The provider defines where and how Odock connects. A model defines what your applications request and how that request maps to an upstream model slug.
 
@@ -43,6 +43,7 @@ The organisation UI supports these provider types:
 | `AZURE_OPENAI` | OpenAI models hosted on Azure OpenAI. |
 | `VLLM` | Self-hosted vLLM inference endpoints. |
 | `MISTRAL` | Mistral La Plateforme: chat, Codestral FIM, embeddings, moderation, and OCR. |
+| `HUGGINGFACE` | Hugging Face Inference Providers: OpenAI-compatible chat over hundreds of open models and many upstream providers. See [Hugging Face](/docs/models-and-mcp/providers/huggingface). |
 | `CUSTOM` | A custom or compatible upstream where your Odock deployment supports the route shape. |
 
 The provider type matters because native endpoints are provider-family aware. For example, an OpenAI-compatible endpoint expects a model configured for an OpenAI-compatible provider family. If a request tries to use a model from the wrong family, the gateway can reject it with a provider mismatch error.
@@ -62,6 +63,7 @@ For deeper security concepts, see [Guardrails](/docs/security-and-guardrails/gua
 
 ## Provider Workflows
 
+- [Hugging Face](/docs/models-and-mcp/providers/huggingface)
 - [Activate a provider](/docs/models-and-mcp/providers/activate-provider)
 - [Edit provider details](/docs/models-and-mcp/providers/edit-provider-details)
 - [Add a provider key](/docs/models-and-mcp/providers/add-provider-key)
