@@ -1,0 +1,8 @@
+{
+  "title": "Tutorials",
+  "icon": "ListChecks",
+  "pages": [
+    "index",
+    "sync-models-into-your-organisation"
+  ]
+}

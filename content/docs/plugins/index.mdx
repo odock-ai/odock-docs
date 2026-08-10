@@ -6,11 +6,11 @@ description: Understand plugins as governed extension points for request-aware, 
 
 # Plugins
 
-Plugins are modular extension points in the Odock gateway lifecycle. They let an Odock deployment add custom checks, transformations, integrations, and evidence collection around LLM and MCP traffic without changing how applications call the gateway.
+Plugins are modular extension points in the Odock gateway lifecycle. They add custom checks, transformations, integrations, and evidence collection around LLM and MCP traffic without changing application calls.
 
-Use plugins when the behavior is specific to your organisation, tenant, workflow, or downstream toolchain. Examples include audit export, request enrichment, tenant-specific checks, custom approval workflows, proprietary DLP integrations, custom headers, enterprise policy integrations, post-response analytics, webhooks, email notifications, and recommendation workflows that depend on conversation context.
+Use plugins for organisation-, tenant-, workflow-, or toolchain-specific behavior: audit export, request enrichment, tenant checks, approvals, DLP integrations, custom headers, enterprise policy integrations, analytics, webhooks, email notifications, and context-aware recommendations.
 
-Plugins are powerful because they sit near runtime traffic. They are governed because they must be scoped, observable, explicitly enabled, and placed only where they have the right context.
+Plugins sit near runtime traffic. Scope them tightly, make them observable, enable them explicitly, and place them only where the required context exists.
 
 ## Why Plugins Exist
 
@@ -22,7 +22,7 @@ Odock already has first-class controls for common AI governance problems:
 - [Budgets](/docs/management/budgets) and [Quotas](/docs/management/quotas) enforce spend and usage ceilings.
 - [Usage Monitoring](/docs/observability/usage-records) records what happened.
 
-Plugins exist for the work that is too deployment-specific to become a universal product control. They are where Odock can integrate with your internal approval system, your SIEM, your DLP provider, your data classification service, your email workflow, your analytics warehouse, or your own business logic.
+Plugins cover work too deployment-specific for a universal product control. Use them to integrate with your approval system, SIEM, DLP provider, classification service, email workflow, analytics warehouse, or business logic.
 
 ```mermaid
 flowchart TD
@@ -41,7 +41,7 @@ flowchart TD
 
 ## What Plugins Are
 
-A plugin is a named unit of behavior that can participate at one or more moments in the gateway lifecycle. Depending on its purpose and permissions, a plugin may:
+A plugin is a named unit of behavior that runs at one or more lifecycle moments. Depending on its purpose and permissions, it can:
 
 - allow traffic to continue
 - block traffic with a user-visible reason
@@ -51,11 +51,11 @@ A plugin is a named unit of behavior that can participate at one or more moments
 - emit audit, analytics, or operational evidence
 - run follow-up work after the caller has received the response
 
-A plugin is not a general escape hatch around Odock governance. It should be designed with least privilege, explicit deployment configuration, stable audit evidence, and clear user-visible behavior.
+A plugin is not an escape hatch around Odock governance. Design it with least privilege, explicit configuration, stable audit evidence, and clear user-visible behavior.
 
 ## When To Use Plugins
 
-Use a plugin when the requirement is business-specific, integration-specific, or workflow-specific.
+Use a plugin for business-, integration-, or workflow-specific requirements.
 
 | Need | Use |
 | --- | --- |
@@ -64,6 +64,7 @@ Use a plugin when the requirement is business-specific, integration-specific, or
 | Consult an enterprise approval system for sensitive model use. | Plugin |
 | Send webhooks, email, or analytics events after a response. | Plugin |
 | Recommend an internal offer or workflow based on conversation signals. | Plugin |
+| Branch on request content, route by tier, or chain several conditional steps together. | [Flow Studio](/docs/plugins/flow-studio) |
 | Enforce requests per minute, request bytes, token windows, or concurrency. | Guardrail policy or ratelimit module |
 | Detect prompt injection, unsafe output, leakage, or redaction needs. | [SafetySec](/docs/security-and-guardrails/safetysec-engine) |
 | Decide whether an API key can call a model or MCP server. | Access grant |
@@ -71,7 +72,7 @@ Use a plugin when the requirement is business-specific, integration-specific, or
 
 ## How Plugins Differ From Other Controls
 
-Plugins often work next to guardrails, SafetySec, budgets, quotas, and access grants, but they do not replace them.
+Plugins work beside guardrails, SafetySec, budgets, quotas, and access grants. They do not replace them.
 
 | Control | Primary question | Typical owner |
 | --- | --- | --- |
@@ -87,7 +88,7 @@ For the broader security model, start with [Security & Guardrails](/docs/securit
 
 ## Plugin Design Philosophy
 
-Odock plugin design follows six principles.
+Odock plugin design follows these principles.
 
 | Principle | Meaning |
 | --- | --- |
@@ -98,12 +99,14 @@ Odock plugin design follows six principles.
 | Observability | Operators should understand what the plugin allowed, blocked, transformed, emitted, or recorded. |
 | Deployment-specific behavior | Plugins can express behavior that belongs to a customer, tenant, environment, vendor, or private integration. |
 
-When a plugin requires internal implementation details, custom contracts, private deployment setup, or a security review, contact the Odock team. Public documentation explains the operating model, not private gateway wiring.
+Contact Odock when a plugin needs internal implementation details, custom contracts, private deployment setup, or security review. Public documentation covers the operating model, not private gateway wiring.
 
 ## Section Guide
 
 - [Architecture](/docs/plugins/architecture): public-safe architecture, lifecycle gates, least privilege, and observability.
 - [Plugin Lifecycle](/docs/plugins/plugin-lifecycle): how plugins participate before upstream work, after upstream response, and after response or evidence collection.
+- [Execution Lanes](/docs/plugins/execution-lanes): how plugins and flows at the same lifecycle moment are grouped into sequential, parallel, and async lanes.
+- [Flow Studio](/docs/plugins/flow-studio): the visual and YAML automation builder for conditional, multi-step behavior across the same lifecycle moments.
 - [Marketplace](/docs/plugins/marketplace): coming-soon marketplace concept for discovering, publishing, selling, reviewing, and enabling plugins.
 - [Evaluate A Plugin](/docs/plugins/evaluate-plugin): checklist for deciding whether to enable a plugin.
 - [Request A Custom Plugin](/docs/plugins/request-custom-plugin): current public-safe process for requesting custom plugin work from Odock.

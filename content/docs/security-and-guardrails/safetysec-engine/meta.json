@@ -5,6 +5,9 @@
     "index",
     "workflow",
     "modules",
+    "security-console",
+    "blocklist-and-threat-actors",
+    "policy-configuration",
     "create-module"
   ]
 }

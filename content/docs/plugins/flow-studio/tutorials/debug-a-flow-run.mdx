@@ -1,0 +1,61 @@
+---
+title: Debug A Flow Run
+icon: Bug
+description: Read the node-by-node trace for a request that went through a flow, and tell flow behavior apart from plugin or provider behavior.
+---
+
+# Debug A Flow Run
+
+Use this when a request behaved unexpectedly and an organisation or key flow could have affected it.
+
+<Steps>
+
+<Step>
+Find the request in [Usage Records](/docs/observability/usage-records) and open its [record detail page](/docs/observability/usage-records/record-details).
+
+Confirm the served model, status, and latency.
+</Step>
+
+<Step>
+Open the flow trace on the record.
+
+Each flow run records node id, node type, outcome, and duration, grouped by scope and phase. It appears beside the plugin execution summary.
+</Step>
+
+<Step>
+Compare the trace to the graph in Flow Studio.
+
+Open the flow that ran and match trace node ids to the canvas. **Skipped** usually means a branch went another way. **Errored** means a runtime problem, not a deliberate abort.
+
+{/* GIF: Reading a flow trace against the canvas (/gifs/flow-studio-read-trace.gif) */}
+</Step>
+
+<Step>
+Check whether the outcome was an abort or a node error.
+
+| Trace shows | Likely cause |
+| --- | --- |
+| An **Abort** node, or an **HTTP Request** with strict-fail behavior, in the trace | The flow deliberately blocked the request — check the condition that led there. |
+| A node marked errored, request continued | A node failed but `on_error` is set to continue — expected for best-effort steps like optional notifications. |
+| A node marked errored, request stopped with a 500 | `on_error` is set to block for this flow — the failing node was treated as load-bearing. |
+| No flow trace at all, even though a flow is activated | The flow's canvas for that phase was empty (only start/end), the flow was disabled, or an earlier sequential-lane step aborted the request first. |
+</Step>
+
+<Step>
+If the issue looks like ordering rather than a single node, re-check [Execution Order](/docs/plugins/flow-studio/execution-order).
+
+A step that did not run is often in a later layer blocked by an earlier sequential abort.
+</Step>
+
+</Steps>
+
+## Cross-Checking With Traces And Logs
+
+If the observability stack is enabled, the same request id links the flow trace to:
+
+- [Traffic Analytics: Plugins](/docs/observability/traffic-analytics/explore-plugins) for aggregate plugin and flow time across many requests.
+- [LGTM Stack: Investigate one request](/docs/observability/lgtm-stack/tutorials/investigate-request) to follow the same request into traces and logs if you need lower-level detail than the trace summary provides.
+
+## Before Saving: Catch It Earlier
+
+Most graph mistakes, such as missing edges, impossible conditions, or undefined variables, are caught before production. See [Testing & Verification](/docs/plugins/flow-studio/testing-and-verification).

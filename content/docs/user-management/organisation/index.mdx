@@ -7,11 +7,11 @@ description: Understand the organisation workspace, inheritance model, settings,
 
 An organisation is the main workspace boundary in Odock. It contains the people, teams, models, MCP servers, virtual API keys, cost controls, policies, and usage records that belong together.
 
-For organisation users, most work starts by choosing the organisation workspace, then using the sidebar to manage **Users**, **Teams**, **API Keys**, **Budgets**, **Quotas**, **Usage Records**, and **Settings**.
+Most work starts by choosing the organisation workspace, then using the sidebar to manage **Users**, **Teams**, **API Keys**, **Budgets**, **Quotas**, **Usage Records**, and **Settings**.
 
 ## Concept
 
-The organisation is the tenant boundary. It answers questions such as:
+The organisation is the tenant boundary. It answers:
 
 - Which users belong to this workspace?
 - Which teams exist in this workspace?
@@ -20,7 +20,7 @@ The organisation is the tenant boundary. It answers questions such as:
 - Which budgets, quotas, and policies apply at the broadest organisation scope?
 - Which usage records should appear in organisation-level reporting?
 
-The organisation does not replace more specific scopes. It gives them a shared boundary. Teams, users, and API keys exist inside the organisation and can add more specific ownership or controls.
+The organisation does not replace specific scopes. It gives them a shared boundary. Teams, users, and API keys live inside it and add specific ownership or controls.
 
 ```mermaid
 flowchart TD
@@ -49,20 +49,20 @@ flowchart TD
 
 ## Inheritance And Scope
 
-In Odock, inheritance is best understood as layered governance:
+Inheritance means layered governance:
 
 - Organisation settings and policies provide the broad workspace context.
 - Team scope adds group ownership and team-level attribution.
 - User scope adds personal ownership and accountability.
 - API key scope controls the actual runtime credential used by applications.
 
-For example, a team-scoped API key belongs to the organisation and is attached to a team. Its traffic can be reviewed under the organisation, the team, and the key. It can also be affected by team budgets, quotas, key-level grants, and broader guardrails.
+Example: a team-scoped API key belongs to the organisation and a team. Review its traffic under the organisation, team, or key. Team budgets, quotas, key grants, and broader guardrails can all affect it.
 
 For deeper runtime policy behavior, see [Guardrails](/docs/security-and-guardrails/guardrails). For model and MCP runtime access, see [Models](/docs/models-and-mcp/models), [MCP Servers](/docs/models-and-mcp/mcp-servers), and [Virtual API Keys](/docs/management/virtual-api-keys).
 
 ## Settings Page
 
-Open **Settings** from the organisation sidebar to manage the organisation profile and broad controls.
+Open **Settings** from the organisation sidebar to manage profile and broad controls.
 
 The settings page shows:
 
@@ -72,6 +72,7 @@ The settings page shows:
 - **Status**: the current organisation status.
 - **Created** and **Updated** timestamps.
 - **Routing enablement**: the organisation-level switch that allows smart routing to be used.
+- **Odock's Model Catalog**: per-provider switch for automatic Odock Catalog availability in Batch Create. See [Automatic Odock Catalog Availability](/docs/models-and-mcp/model-catalog/automatic-availability).
 - **Policies**: organisation-level policy settings.
 
 ![Organisation **Settings** page ](/gifs/organisation-settings.gif)

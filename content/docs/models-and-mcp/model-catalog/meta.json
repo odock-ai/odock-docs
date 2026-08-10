@@ -1,0 +1,10 @@
+{
+  "title": "Model Catalog",
+  "icon": "Library",
+  "pages": [
+    "index",
+    "automatic-availability",
+    "sync-to-your-organisation",
+    "tutorials"
+  ]
+}

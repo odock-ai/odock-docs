@@ -6,22 +6,22 @@ description: Create another Odock model name for the same upstream model slug.
 
 # Add a variant model
 
-A variant model is a second Odock model record that points to the same upstream provider model slug but uses a different Odock model name.
+A variant model is another Odock model record for the same upstream provider slug, under a different Odock model name.
 
-For example, you can create `gpt-4.1-clientA` as the Odock model name while keeping `gpt-4.1` as the upstream slug. Applications for client A call `gpt-4.1-clientA`, and Odock forwards the request to the upstream `gpt-4.1` model.
+Example: create `gpt-4.1-clientA` as the Odock model name while keeping `gpt-4.1` as the upstream slug. Client A calls `gpt-4.1-clientA`; Odock forwards to upstream `gpt-4.1`.
 
 ## Why Use A Variant Model
 
-Use a variant model when different teams, clients, projects, or environments need different governance around the same upstream model.
+Use a variant when different teams, clients, projects, or environments need different governance for the same upstream model.
 
 Common reasons include:
 
-- **Client-specific naming**: expose `gpt-4.1-clientA` to a client project without changing the upstream provider slug.
-- **Different pricing**: apply a client contract, internal markup, discount, or project-specific pricing to one model record while another record keeps default pricing.
+- **Client-specific naming**: expose `gpt-4.1-clientA` without changing the upstream slug.
+- **Different pricing**: apply client, internal, discount, or project pricing while another record keeps defaults.
 - **Different policies**: set stricter rate limits, IP rules, or payload limits for one project.
 - **Separate access grants**: give one API key access to `gpt-4.1-clientA` without granting access to the default `gpt-4.1` model record.
-- **Cleaner usage reporting**: make usage records clearly show which client, project, or workload requested the model.
-- **Migration safety**: point a stable project-specific model name to a new upstream slug later without changing application code.
+- **Cleaner usage reporting**: show the client, project, or workload in usage records.
+- **Migration safety**: later point a stable project model name to a new upstream slug without changing application code.
 
 ```mermaid
 flowchart TD
@@ -41,7 +41,7 @@ flowchart TD
 
 ## How It Works
 
-The model **Name** is what applications send to Odock. The model **Slug** is what Odock sends to the upstream provider.
+Applications send the model **Name** to Odock. Odock sends the model **Slug** upstream.
 
 For a variant model:
 
@@ -56,7 +56,10 @@ For a variant model:
 
 ## Create A Variant From The Catalog
 
-When the catalog detects that the same slug already exists, it lets you create another model with a different Odock name.
+Batch Create blocks only duplicate **names**. Reusing the upstream slug is allowed. Create a variant in either way:
+
+- Select a catalog card that already has a distinct name, such as an **Alongside Odock** entry. See [Automatic Odock Catalog Availability](/docs/models-and-mcp/model-catalog/automatic-availability#resolving-a-duplicate).
+- If the catalog card name collides with an existing model, click **Add with different name** and keep the same upstream slug.
 
 <Steps>
 
@@ -73,11 +76,11 @@ Select the provider key.
 </Step>
 
 <Step>
-Find the model with the existing upstream slug, such as `gpt-4.1`.
+Find the model with the upstream slug, such as `gpt-4.1`.
 </Step>
 
 <Step>
-Click **Add with different name**.
+If the card name collides, click **Add with different name**. If the name is already distinct, select it directly.
 </Step>
 
 <Step>
@@ -101,7 +104,7 @@ Open the new model and adjust pricing, policies, and API key access for the clie
 
 ## After Creating The Variant
 
-After creating the variant, grant access only to the API keys that should use it. If the variant is for a specific client or project, update that application's model setting to the variant name, for example:
+After creating the variant, grant access only to the API keys that should use it. For a client or project variant, update the application's model setting:
 
 ```json
 {
@@ -109,4 +112,4 @@ After creating the variant, grant access only to the API keys that should use it
 }
 ```
 
-Then review usage records to confirm traffic appears under the variant model name.
+Then confirm usage records show the variant model name.

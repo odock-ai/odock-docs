@@ -1,0 +1,10 @@
+{
+  "title": "Tutorials",
+  "icon": "ListChecks",
+  "pages": [
+    "index",
+    "build-your-first-flow",
+    "activate-a-key-flow",
+    "debug-a-flow-run"
+  ]
+}

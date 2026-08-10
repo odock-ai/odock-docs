@@ -5,6 +5,8 @@
     "index",
     "architecture",
     "plugin-lifecycle",
+    "execution-lanes",
+    "flow-studio",
     "marketplace",
     "evaluate-plugin",
     "request-custom-plugin"

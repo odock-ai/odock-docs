@@ -5,9 +5,9 @@ description: Connect upstream AI providers, store provider keys safely, and crea
 
 # Providers
 
-Providers are the upstream AI services that Odock can call on your behalf. Examples include OpenAI, Anthropic, Google Gemini, Azure OpenAI, vLLM, Mistral, Hugging Face, and custom-compatible providers.
+Providers are upstream AI services Odock can call: OpenAI, Anthropic, Google Gemini, Azure OpenAI, vLLM, Mistral, Hugging Face, and custom-compatible providers.
 
-A provider is not the same as a model. The provider defines where and how Odock connects. A model defines what your applications request and how that request maps to an upstream model slug.
+A provider is not a model. The provider defines where and how Odock connects. A model defines what applications request and how that maps to an upstream slug.
 
 ## Provider Hierarchy
 
@@ -29,7 +29,7 @@ flowchart TD
   MODEL --> CALL
 ```
 
-The provider and provider key are setup dependencies. The virtual API key is the credential your application uses. Your app never needs the upstream provider key.
+The provider and provider key are setup dependencies. The virtual API key is the application credential. Applications never need upstream provider keys.
 
 ## Provider Types
 
@@ -46,13 +46,13 @@ The organisation UI supports these provider types:
 | `HUGGINGFACE` | Hugging Face Inference Providers: OpenAI-compatible chat over hundreds of open models and many upstream providers. See [Hugging Face](/docs/models-and-mcp/providers/huggingface). |
 | `CUSTOM` | A custom or compatible upstream where your Odock deployment supports the route shape. |
 
-The provider type matters because native endpoints are provider-family aware. For example, an OpenAI-compatible endpoint expects a model configured for an OpenAI-compatible provider family. If a request tries to use a model from the wrong family, the gateway can reject it with a provider mismatch error.
+Provider type matters because native endpoints are provider-family aware. For example, an OpenAI-compatible endpoint expects an OpenAI-compatible model. If a request uses the wrong family, the gateway can reject it with a provider mismatch error.
 
 For endpoint behavior, see [Endpoints](/docs/models-and-mcp/endpoints) and [Native Models call](/docs/usage/native-models-call).
 
 ## Provider Key Security
 
-Odock separates upstream provider secrets from application credentials.
+Odock keeps upstream provider secrets separate from application credentials.
 
 - The provider key is encrypted before storage.
 - The full provider key is not displayed again in the UI after saving.
@@ -69,6 +69,8 @@ For deeper security concepts, see [Guardrails](/docs/security-and-guardrails/gua
 - [Add a provider key](/docs/models-and-mcp/providers/add-provider-key)
 - [Add models from a provider](/docs/models-and-mcp/providers/add-models-from-provider)
 - [Update model pricing from the catalog](/docs/models-and-mcp/providers/update-model-pricing-from-catalog)
+
+For the maintained cross-provider list these workflows use, see [Model Catalog](/docs/models-and-mcp/model-catalog).
 
 ## Troubleshooting
 

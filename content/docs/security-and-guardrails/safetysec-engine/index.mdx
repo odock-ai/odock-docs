@@ -5,9 +5,9 @@ description: Understand SafetySec as Odock's modular prompt and response securit
 
 # Security Engine
 
-The Odock security engine is called SafetySec in the runtime. It is a modular engine for prompt safety, response safety, redaction, leakage detection, and repeated-risk awareness.
+Odock's runtime security engine is SafetySec. It handles prompt safety, response safety, redaction, leakage detection, and repeated-risk awareness.
 
-SafetySec is separate from policy limits. Policies control traffic shape and resource boundaries. SafetySec inspects prompt and response content when text is available.
+SafetySec is separate from policy limits. Policies control traffic shape and resource boundaries. SafetySec inspects prompt and response content.
 
 ## What SafetySec Does
 
@@ -18,7 +18,7 @@ SafetySec is separate from policy limits. Policies control traffic shape and res
 | Sensitive redaction | Redact secrets and PII-like values in requests and responses. |
 | Data-leakage detection | Detect sensitive material in model output or echoed from the request. |
 | Repeated-risk awareness | Treat repeated suspicious behavior differently from isolated low-risk events. |
-| Safety evidence | Produce evidence that helps users understand whether a request was allowed, redacted, observed, or blocked. |
+| Safety evidence | Explain whether a request was allowed, redacted, observed, or blocked. |
 
 ## Engine Architecture
 
@@ -47,7 +47,7 @@ flowchart TD
 | After upstream work | Response checks, output redaction, leakage protection. |
 | After response handling | Non-blocking audit, metrics, or analysis where configured. |
 
-The exact internal plan is deployment-managed. The public model is that SafetySec modules run at the points where their required context exists.
+The exact internal plan is deployment-managed. Publicly, SafetySec modules run where their required context exists.
 
 ## How It Differs From Guardrail Policies
 
@@ -62,11 +62,15 @@ For policy guardrails, see [Guardrails](/docs/security-and-guardrails/guardrails
 
 ## User Impact
 
-When SafetySec blocks, the caller receives a structured gateway error instead of an upstream response. When it redacts, the request or response continues with sensitive values replaced by redaction markers.
+When SafetySec blocks, the caller receives a structured gateway error instead of an upstream response. When it redacts, traffic continues with sensitive values replaced by redaction markers.
 
-Because SafetySec can work before and after the provider call, it can protect both sides:
+SafetySec can protect both sides of the provider call:
 
-- before upstream: prevent sensitive input and suspicious prompts from leaving through the provider request
-- after upstream: prevent sensitive output or leakage from reaching the caller
+- before upstream: stop sensitive input and suspicious prompts before provider egress
+- after upstream: stop sensitive output or leakage before it reaches the caller
 
 Continue with [Security workflow](/docs/security-and-guardrails/safetysec-engine/workflow).
+
+## Operating SafetySec
+
+Use the [Security Console](/docs/security-and-guardrails/safetysec-engine/security-console) to watch SafetySec decisions, investigate repeat offenders, manage the [blocklist](/docs/security-and-guardrails/safetysec-engine/blocklist-and-threat-actors), and tune [organisation policy](/docs/security-and-guardrails/safetysec-engine/policy-configuration).

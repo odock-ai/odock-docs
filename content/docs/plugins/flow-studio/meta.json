@@ -1,0 +1,11 @@
+{
+  "title": "Flow Studio",
+  "icon": "Workflow",
+  "pages": [
+    "index",
+    "building-blocks",
+    "execution-order",
+    "tutorials",
+    "testing-and-verification"
+  ]
+}

@@ -1,0 +1,65 @@
+---
+title: Sync Models Into Your Organisation
+icon: RefreshCw
+description: Pull a provider's model list into your organisation's catalog, then turn selected entries into model records.
+---
+
+# Sync Models Into Your Organisation
+
+**Goal:** add an editable Anthropic model copy to your organisation using Odock Catalog pricing.
+
+<Callout type="info">
+If you only need the model in **Batch Create** with Odock default pricing, skip this tutorial. It is already available when **Use Odock's Catalog** is on for Anthropic. Use this flow for an editable copy, for example client-specific pricing. See [Automatic Odock Catalog Availability](/docs/models-and-mcp/model-catalog/automatic-availability).
+</Callout>
+
+<Steps>
+
+<Step>
+Confirm you have an active **Anthropic** [provider](/docs/models-and-mcp/providers) with a provider key. Sync uses your provider connection.
+</Step>
+
+<Step>
+Open **Models** in your organisation, then the **Model Catalog** tab.
+</Step>
+
+<Step>
+Select **Anthropic** in the sync bar and click **Sync latest**.
+
+This opens the sync dialog.
+</Step>
+
+<Step>
+Choose **Odock Catalog** as the source.
+
+The preview loads, grouped into **New models** and **Already in your catalog**.
+</Step>
+
+<Step>
+Search for the model you want, select it, and click **Sync selected**.
+
+Odock adds it to your organisation catalog with pricing and capabilities.
+</Step>
+
+<Step>
+Select the synced row and click **Make available to organisation**.
+
+Because the model is already automatic through Odock Catalog, **Resolve duplicate models** opens. Choose **Keep both**, adjust the suggested name if needed, and click **Apply**. The entry appears in **Batch Create** tagged **Alongside Odock**.
+</Step>
+
+<Step>
+Switch to the **Models** tab and click **Batch Create**.
+
+Select your Anthropic provider key, find the new entry, select it, and click **Create Selected Models**. Use **New only** if needed.
+</Step>
+
+</Steps>
+
+## If The Model You Need Isn't In The Odock Catalog
+
+Repeat the sync with **Provider model list**. This pulls from your Anthropic account and includes private or fine-tuned models your key can see. Set pricing afterward from the model detail page. See [Edit model pricing](/docs/models-and-mcp/models/edit-model-pricing).
+
+## Next
+
+- [Automatic Odock Catalog Availability](/docs/models-and-mcp/model-catalog/automatic-availability) for the full duplicate-resolution reference.
+- [Add models from the catalog](/docs/models-and-mcp/models/add-models-from-catalog) for the full Batch Create reference.
+- [Update model pricing from the catalog](/docs/models-and-mcp/providers/update-model-pricing-from-catalog) if provider prices have changed since you first synced.

@@ -6,27 +6,28 @@ description: Practical guide to Odock runtime guardrails, policy inheritance, Sa
 
 # Security & Guardrails
 
-Security in Odock is layered. A request is allowed only when the caller, the resource, the policy envelope, the safety checks, the cost controls, and the plugin gates all agree that it can continue.
+Security in Odock is layered. A request continues only when caller identity, resource access, policies, safety checks, cost controls, and plugin gates all allow it.
 
-This section is written for organisation users who configure and operate Odock resources. It explains what happens at runtime without requiring you to manage server internals.
+This section is for organisation users who configure and operate Odock resources. It explains runtime behavior without server internals.
 
 ## What This Section Covers
 
 - **Guardrails**: policy scopes, inheritance, request limits, token limits, IP rules, MCP tool rules, budgets, quotas, and plugin gates.
-- **Security Engine**: SafetySec phases, built-in modules, session scoring, redaction, blocking, and response checks.
+- **Security Engine**: SafetySec phases, modules, session scoring, redaction, blocking, and response checks.
+- **Security Console**: the organisation dashboard for live events, threat actors, the blocklist, and per-organisation policy.
 - **Tutorials**: UI-driven steps for configuring organisation, API key, model, and MCP guardrails, plus how to verify enforcement in usage records.
 
 For virtual API keys, see [Virtual API Keys](/docs/management/virtual-api-keys). For model access and MCP access, see [Models & MCP](/docs/models-and-mcp). For budgets and quotas, see [Budgets](/docs/management/budgets) and [Quotas](/docs/management/quotas).
 
 ## Runtime Security Model
 
-Odock treats guardrails as both **request-aware** and **token-aware**:
+Odock guardrails are:
 
-- Request-aware controls reason about the request envelope: where traffic comes from, which key is used, which resource is requested, how large the payload is, and whether the request fits the policy envelope.
-- Token-aware controls reason about model usage: requested output size, token budgets, token-rate limits, pricing, quota windows, and final usage attribution.
-- Content-aware controls reason about prompt and response content: sensitive data, unsafe instructions, leakage risk, and custom business checks.
+- Request-aware: source, key, resource, payload size, and policy envelope.
+- Token-aware: output size, token budgets, token-rate limits, pricing, quotas, and usage attribution.
+- Content-aware: prompt and response text, sensitive data, unsafe instructions, leakage risk, and custom checks.
 
-The philosophy is to apply the right guardrail at the right moment. Some gates protect the platform before expensive work begins. Some gates need the API key, organisation, model, MCP server, or token context. Some modules need prompt or response text. Odock keeps these concerns separate so policies stay explainable, safety checks stay modular, and the gateway can make consistent decisions across models and tools.
+Apply the right guardrail at the right moment. Some gates run before expensive work. Some need API key, organisation, model, MCP server, or token context. Some need prompt or response text. Odock separates these concerns so policies stay explainable and decisions stay consistent across models and tools.
 
 ```mermaid
 flowchart TD
@@ -47,7 +48,7 @@ flowchart TD
 
 ## Where Guardrails Come From
 
-Guardrails are configured at several layers:
+Configure guardrails at these layers:
 
 | Layer | Typical purpose | Where users see it |
 | --- | --- | --- |
@@ -66,4 +67,5 @@ Guardrails are configured at several layers:
 2. [Policy inheritance](/docs/security-and-guardrails/guardrails/policy-inheritance): learn how inherited limits combine.
 3. [Runtime enforcement](/docs/security-and-guardrails/guardrails/runtime-enforcement): see when each gate runs.
 4. [Security Engine](/docs/security-and-guardrails/safetysec-engine): understand SafetySec and its modules.
-5. [Tutorials](/docs/security-and-guardrails/tutorials): configure guardrails from the organisation UI.
+5. [Security Console](/docs/security-and-guardrails/safetysec-engine/security-console): watch SafetySec decisions live, manage the blocklist, and tune per-organisation policy.
+6. [Tutorials](/docs/security-and-guardrails/tutorials): configure guardrails from the organisation UI.

@@ -7,6 +7,8 @@
     "api-key-policy",
     "model-policy",
     "mcp-guardrails",
-    "verify-enforcement"
+    "verify-enforcement",
+    "roll-out-safetysec-monitoring",
+    "investigate-and-block-a-sender"
   ]
 }

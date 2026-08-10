@@ -6,7 +6,7 @@ description: Batch create model records from the provider detail page.
 
 # Add models from a provider
 
-Once the provider and provider key exist, create models bound to that provider.
+After creating the provider and provider key, create models for that provider.
 
 <Steps>
 
@@ -43,10 +43,9 @@ Click **Create Selected Models**.
 
 </Steps>
 
-![Add Models from catalog](/gifs/providers-add-models.gif
-)
+![Add Models from catalog](/gifs/providers-add-models.gif)
 
 
 
 
-The batch create dialog imports model metadata such as type, capabilities, context information, and pricing when the catalog provides it. If a model slug already exists, the UI can create an alternative with the same upstream slug but a different Odock model name.
+Batch Create imports metadata such as type, capabilities, context, and pricing when available. If a model name collides with an existing record, create it with the same upstream slug and a different Odock model name. See [Add a variant model](/docs/models-and-mcp/models/add-variant-model).

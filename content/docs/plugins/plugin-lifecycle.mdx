@@ -6,7 +6,7 @@ description: Conceptual lifecycle of plugin execution before upstream work, afte
 
 # Plugin Lifecycle
 
-Plugins participate in the request lifecycle at moments where their required context exists. Odock does not publish the exact private phase order, internal contracts, queue behavior, or source wiring. The public model is enough for operators to reason about behavior, rollout, and evidence.
+Plugins run at lifecycle moments where their required context exists. Odock does not publish private phase order, internal contracts, queue behavior, or source wiring. The public model is enough to reason about behavior, rollout, and evidence.
 
 ## Lifecycle Moments
 
@@ -26,11 +26,11 @@ flowchart TB
   AFTER --> OBS
 ```
 
-The names above are conceptual. Your deployment may include additional gateway work around these moments, such as authentication, access grants, policies, SafetySec, budgets, quotas, routing, usage recording, and reconciliation.
+These names are conceptual. Your deployment may add gateway work around them: authentication, access grants, policies, SafetySec, budgets, quotas, routing, usage recording, and reconciliation.
 
 ## Before Upstream Work
 
-Use this moment when the plugin needs to act before content or metadata leaves Odock for a provider or MCP server.
+Use this moment when a plugin must act before content or metadata leaves Odock.
 
 Common examples:
 
@@ -49,11 +49,11 @@ Possible outcomes:
 - block with a user-visible reason
 - emit request-side evidence
 
-Do not place a plugin here if it needs the model response. It does not exist yet.
+Do not place response-dependent plugins here. The response does not exist yet.
 
 ## After Upstream Response
 
-Use this moment when the plugin needs the response from the model provider or MCP server before deciding what to do.
+Use this moment when the plugin needs the provider or MCP response before acting.
 
 Common examples:
 
@@ -70,11 +70,11 @@ Possible outcomes:
 - block or replace the response when configured to enforce
 - emit response-aware evidence
 
-Use [SafetySec](/docs/security-and-guardrails/safetysec-engine) rather than a plugin when the requirement is primarily prompt safety, response safety, redaction, leakage prevention, or repeated-risk behavior.
+Use [SafetySec](/docs/security-and-guardrails/safetysec-engine) instead of a plugin for prompt safety, response safety, redaction, leakage prevention, or repeated-risk behavior.
 
 ## After Response Or Evidence Stage
 
-Use this moment when work should not delay the caller response or cannot change the result.
+Use this moment for work that should not delay the caller and cannot change the result.
 
 Common examples:
 
@@ -87,7 +87,7 @@ Common examples:
 - post-response recommendation signals
 - detection of special words or business events for reporting
 
-This is the right place for background work when the plugin only records, exports, or analyzes. It should not be used for enforcement that callers expect to stop a request.
+Use it for background recording, export, or analysis. Do not use it for enforcement that should stop a request.
 
 ## Ordered, Independent, And Background Work
 
@@ -111,9 +111,11 @@ flowchart TD
   BACKGROUND -- "no" --> SEQ
 ```
 
-Ordered work is used when a plugin may change state, transform content, or stop the request. Independent work is used when plugins can observe and emit evidence without depending on each other. Background work is used for follow-up side effects such as audit export, webhooks, email, or analytics.
+Use ordered work when a plugin may change state, transform content, or stop the request. Use independent work for observation and evidence that do not depend on other plugins. Use background work for audit export, webhooks, email, or analytics.
 
-The operator-facing question is always the same: can this plugin change what the caller receives, or does it only record and export evidence?
+Ask: can this plugin change what the caller receives, or only record and export evidence?
+
+For lane mechanics, including how plugins and active flows are ordered together, see [Execution Lanes](/docs/plugins/execution-lanes).
 
 ## Decision Tree
 
@@ -144,7 +146,7 @@ flowchart TD
 
 ## Evidence Expectations
 
-A plugin should leave enough evidence for an operator to answer:
+A plugin should leave evidence for:
 
 - request id
 - plugin name or display name
@@ -156,4 +158,4 @@ A plugin should leave enough evidence for an operator to answer:
 - whether the plugin changed request or response data
 - whether the plugin ran in the response path or background
 
-For current custom plugin delivery, see [Request A Custom Plugin](/docs/plugins/request-custom-plugin). For the planned self-service ecosystem, see [Marketplace](/docs/plugins/marketplace).
+For current custom plugin delivery, see [Request A Custom Plugin](/docs/plugins/request-custom-plugin). For the planned self-service ecosystem, see [Marketplace](/docs/plugins/marketplace). For conditional, multi-step behavior across these same moments without a custom plugin, see [Flow Studio](/docs/plugins/flow-studio).

@@ -4,6 +4,7 @@
   "pages": [
     "index",
     "providers",
+    "model-catalog",
     "models",
     "mcp-servers",
     "endpoints"

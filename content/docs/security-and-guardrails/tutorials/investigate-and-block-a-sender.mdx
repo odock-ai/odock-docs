@@ -1,0 +1,57 @@
+---
+title: Investigate And Block A Suspicious Sender
+icon: Ban
+description: Find a repeat offender in Live Events, confirm the pattern in Threat Actors, then block and later unblock them.
+---
+
+# Investigate And Block A Suspicious Sender
+
+Use this when SafetySec flags behavior that looks deliberate, not like an isolated false positive.
+
+<Steps>
+
+<Step>
+Open **Security → Live Events** and filter **Action = Flag** or **Would-block**, sorted by most recent.
+
+Look for repeated fingerprints, especially with similar reasons.
+</Step>
+
+<Step>
+Switch to **Threat Actors** and find that fingerprint.
+
+Confirm the pattern. High event count, concentrated reasons, and rising session score suggest deliberate behavior. Open the actor profile for severity, timeline, and recent evidence.
+</Step>
+
+<Step>
+Click **Block** on the actor (or on any of their individual events).
+
+Add a reason and optional expiry.
+</Step>
+
+<Step>
+Confirm enforcement.
+
+The sender is rejected on the next request. Blocks and unblocks take effect immediately. Confirm the block appears in **Blocklist**.
+</Step>
+
+<Step>
+If the block turns out to be a false positive later, unblock it.
+
+Open **Blocklist** or the actor profile and choose **Unblock**. Use **Unblock & reset threat score** to prevent immediate auto-block re-triggering on the next flagged request.
+</Step>
+
+</Steps>
+
+## Investigation Checklist
+
+| Signal | Likely conclusion |
+| --- | --- |
+| Same fingerprint, many events, one or two modules, short time window | Scripted or deliberate attack — block |
+| Same fingerprint, few events, spread across many modules over days | Likely noisy but legitimate traffic — tune thresholds instead of blocking |
+| High session score but only one flagged request | Borderline — watch before blocking; consider whether the request itself was truly malicious |
+| Auto-block already fired (source = Auto) | The organisation's auto-block score was crossed — review whether that threshold is set correctly for this organisation |
+
+## Next
+
+- [Roll out SafetySec with monitor mode](/docs/security-and-guardrails/tutorials/roll-out-safetysec-monitoring) if this pattern suggests your thresholds need retuning rather than a one-off block.
+- [Blocklist & Threat Actors](/docs/security-and-guardrails/safetysec-engine/blocklist-and-threat-actors) for the full model behind blocks and actor profiles.
