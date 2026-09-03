@@ -114,12 +114,6 @@ export default function HomePage() {
 
         <div className="relative mx-auto max-w-6xl">
           <div className="max-w-3xl">
-            <div className="mb-5 inline-flex w-fit max-w-full items-center gap-2 border border-fd-border bg-fd-card px-3 py-1.5 sm:mb-6">
-              <span className="h-1.5 w-1.5 bg-fd-primary" />
-              <span className="text-[9px] uppercase tracking-[0.2em] text-fd-muted-foreground sm:text-[10px]">
-                Odock Documentation
-              </span>
-            </div>
             <h1 className="text-4xl font-semibold tracking-tight sm:text-6xl">
               Govern LLM and MCP traffic from one gateway.
             </h1>
