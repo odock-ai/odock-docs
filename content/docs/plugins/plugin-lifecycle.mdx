@@ -1,42 +1,65 @@
 ---
 title: Plugin Lifecycle
 icon: Workflow
-description: Conceptual lifecycle of plugin execution before upstream work, after upstream response, and after response evidence.
+description: Lifecycle of plugin execution across the four gateway phases — pre-route, pre-upstream, post-upstream, and post-response.
 ---
 
 # Plugin Lifecycle
 
-Plugins run at lifecycle moments where their required context exists. Odock does not publish private phase order, internal contracts, queue behavior, or source wiring. The public model is enough to reason about behavior, rollout, and evidence.
+Plugins run at lifecycle moments where their required context exists. This page walks through each of the four moments, what a plugin can do there, and when to use it. These are the same four phases [Flow Studio](/docs/plugins/flow-studio) uses.
 
 ## Lifecycle Moments
 
 ```mermaid
 flowchart TB
   CLIENT["Application or agent"]
-  AUTH["Authenticated and governed request"]
-  BEFORE["Plugin moment<br/>before upstream work"]
+  AUTH["Authenticated request"]
+  PREROUTE["Plugin moment<br/>pre-route"]
+  ROUTING["Model routing, budget, safety checks"]
+  PREUPSTREAM["Plugin moment<br/>pre-upstream"]
   UPSTREAM["Model provider or MCP server"]
-  AFTER["Plugin moment<br/>after upstream response"]
+  POSTUPSTREAM["Plugin moment<br/>post-upstream"]
   RESPONSE["Response to caller"]
-  EVIDENCE["Plugin moment<br/>after response/evidence"]
+  POSTRESPONSE["Plugin moment<br/>post-response"]
   OBS["Usage evidence<br/>audit, logs, metrics, traces"]
 
-  CLIENT --> AUTH --> BEFORE --> UPSTREAM --> AFTER --> RESPONSE --> EVIDENCE --> OBS
-  BEFORE --> OBS
-  AFTER --> OBS
+  CLIENT --> AUTH --> PREROUTE --> ROUTING --> PREUPSTREAM --> UPSTREAM --> POSTUPSTREAM --> RESPONSE --> POSTRESPONSE --> OBS
+  PREROUTE --> OBS
+  PREUPSTREAM --> OBS
+  POSTUPSTREAM --> OBS
 ```
 
-These names are conceptual. Your deployment may add gateway work around them: authentication, access grants, policies, SafetySec, budgets, quotas, routing, usage recording, and reconciliation.
+Your deployment may add gateway work around these moments: authentication, access grants, policies, SafetySec, budgets, quotas, routing, usage recording, and reconciliation.
 
-## Before Upstream Work
+## Pre-Route
 
-Use this moment when a plugin must act before content or metadata leaves Odock.
+Use this moment when a plugin must act before the gateway decides routing, budget, or safety — the earliest point a plugin can run.
+
+Common examples:
+
+- change which model or MCP server handles the request
+- tier-based routing decisions
+- eligibility checks that should block before any cost is committed
+- early metadata or headers other plugins will read later
+
+Possible outcomes:
+
+- allow the request unchanged
+- change the target model
+- add metadata or headers
+- block with a user-visible reason
+- emit request-side evidence
+
+Do not place response-dependent plugins here. The response does not exist yet.
+
+## Pre-Upstream
+
+Use this moment for the last edits before the request leaves Odock — after routing, budget, and safety checks have already run.
 
 Common examples:
 
 - request enrichment with tenant, project, billing, or trace metadata
 - custom headers for approved upstream integrations
-- tenant-specific eligibility checks
 - proprietary DLP checks before egress
 - custom approval workflow before sensitive model use
 - route-specific webhook calls that must complete before upstream work
@@ -51,7 +74,7 @@ Possible outcomes:
 
 Do not place response-dependent plugins here. The response does not exist yet.
 
-## After Upstream Response
+## Post-Upstream
 
 Use this moment when the plugin needs the provider or MCP response before acting.
 
@@ -72,9 +95,9 @@ Possible outcomes:
 
 Use [SafetySec](/docs/security-and-guardrails/safetysec-engine) instead of a plugin for prompt safety, response safety, redaction, leakage prevention, or repeated-risk behavior.
 
-## After Response Or Evidence Stage
+## Post-Response
 
-Use this moment for work that should not delay the caller and cannot change the result.
+Use this moment for work that should not delay the caller and cannot change the result — the reply has already been sent.
 
 Common examples:
 
@@ -158,4 +181,4 @@ A plugin should leave evidence for:
 - whether the plugin changed request or response data
 - whether the plugin ran in the response path or background
 
-For current custom plugin delivery, see [Request A Custom Plugin](/docs/plugins/request-custom-plugin). For the planned self-service ecosystem, see [Marketplace](/docs/plugins/marketplace). For conditional, multi-step behavior across these same moments without a custom plugin, see [Flow Studio](/docs/plugins/flow-studio).
+For catalog plugins, see [Marketplace](/docs/plugins/marketplace). For a plugin the catalog does not have, see [Request A Custom Plugin](/docs/plugins/request-custom-plugin). For conditional, multi-step behavior across these same moments without a custom plugin, see [Flow Studio](/docs/plugins/flow-studio).

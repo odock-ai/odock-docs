@@ -1,112 +1,109 @@
 ---
 title: Plugins
 icon: Blocks
-description: Understand plugins as governed extension points for request-aware, response-aware, and evidence-aware gateway behavior.
+description: Add custom checks, transformations, and integrations to the gateway request lifecycle with plugins and flows.
 ---
 
 # Plugins
 
-Plugins are modular extension points in the Odock gateway lifecycle. They add custom checks, transformations, integrations, and evidence collection around LLM and MCP traffic without changing application calls.
+A plugin is a unit of code that runs at a point in the gateway request lifecycle. It can inspect a request or response, block it, transform it, call an external system, or record evidence. Plugins let an Odock deployment add behavior that is specific to one organisation, tenant, or workflow, without changing how applications call the gateway.
 
-Use plugins for organisation-, tenant-, workflow-, or toolchain-specific behavior: audit export, request enrichment, tenant checks, approvals, DLP integrations, custom headers, enterprise policy integrations, analytics, webhooks, email notifications, and context-aware recommendations.
-
-Plugins sit near runtime traffic. Scope them tightly, make them observable, enable them explicitly, and place them only where the required context exists.
-
-## Why Plugins Exist
-
-Odock already has first-class controls for common AI governance problems:
-
-- [Virtual API Keys](/docs/management/virtual-api-keys) authenticate callers and provide runtime attribution.
-- [Models & MCP](/docs/models-and-mcp) define the resources applications can call.
-- [Security & Guardrails](/docs/security-and-guardrails) enforce policy limits, access, request limits, MCP rules, SafetySec, and cost boundaries.
-- [Budgets](/docs/management/budgets) and [Quotas](/docs/management/quotas) enforce spend and usage ceilings.
-- [Usage Monitoring](/docs/observability/usage-records) records what happened.
-
-Plugins cover work too deployment-specific for a universal product control. Use them to integrate with your approval system, SIEM, DLP provider, classification service, email workflow, analytics warehouse, or business logic.
+A flow is the second way to add that behavior: a node graph you build yourself in [Flow Studio](/docs/plugins/flow-studio) — conditions, branches, loops, and actions — instead of code. Plugins and flows run at the same lifecycle moments and are ordered together; this section covers both, starting with plugins.
 
 ```mermaid
-flowchart TD
-  REQUEST["LLM or MCP request"]
-  ODOCK["Odock gateway"]
-  STANDARD["Standard controls<br/>auth, grants, policies, SafetySec, budgets, quotas"]
-  PLUGINS["Plugins<br/>deployment-specific behavior"]
+flowchart LR
+  REQUEST["Request"]
+  GATEWAY["Auth, access grants, policies,<br/>budgets, quotas, SafetySec"]
+  PLUGINS["Plugins and flows"]
   UPSTREAM["Model provider or MCP server"]
-  EVIDENCE["Usage evidence<br/>logs, metrics, traces, audit"]
+  RESPONSE["Response to caller"]
+  EVIDENCE["Usage records, logs, metrics, traces"]
 
-  REQUEST --> ODOCK --> STANDARD --> PLUGINS --> UPSTREAM
-  STANDARD --> EVIDENCE
+  REQUEST --> GATEWAY --> PLUGINS --> UPSTREAM --> RESPONSE
+  GATEWAY --> EVIDENCE
   PLUGINS --> EVIDENCE
-  UPSTREAM --> EVIDENCE
 ```
 
-## What Plugins Are
+## Plugins Vs. Flows
 
-A plugin is a named unit of behavior that runs at one or more lifecycle moments. Depending on its purpose and permissions, it can:
+| | Plugin | Flow |
+| --- | --- | --- |
+| Built by | Odock, or requested from Odock for custom work | You, in Flow Studio |
+| Logic | Fixed behavior with configuration values | A graph you design: conditions, branches, loops |
+| Where you get one | The [Marketplace](/docs/plugins/marketplace) catalog, or a [custom request](/docs/plugins/request-custom-plugin) | Built from scratch or a template |
+| Good for | One clear, reusable job — audit export, a webhook, a DLP integration | Conditional logic, multi-step routing, combining several checks into one pipeline |
 
-- allow traffic to continue
-- block traffic with a user-visible reason
-- transform allowed request or response fields
+A flow can call an already-activated plugin as one of its steps, so the two are not exclusive: use a plugin for the reusable, audited unit of work, and a flow to decide when and how it runs.
+
+## What A Plugin Can Do
+
+A plugin runs at one or more lifecycle moments and can:
+
+- allow the request to continue unchanged
+- block the request with a user-visible reason
+- transform request or response fields
 - add metadata or headers
-- call an external system through a governed integration
+- call an external system: a webhook, an approval system, a DLP or SIEM integration
 - emit audit, analytics, or operational evidence
-- run follow-up work after the caller has received the response
+- run follow-up work after the response has already been sent
 
-A plugin is not an escape hatch around Odock governance. Design it with least privilege, explicit configuration, stable audit evidence, and clear user-visible behavior.
+A plugin runs only where it has the data it needs. A plugin that reads the response cannot run before the response exists.
 
-## When To Use Plugins
+## Where Plugins Run
 
-Use a plugin for business-, integration-, or workflow-specific requirements.
+| Location | Scope | Who |
+| --- | --- | --- |
+| Deployment configuration | Every request | Set by the Odock deployment, always on |
+| `/{organisation}/plugins/flow` → **Plugin board** tab | Every API key in the organisation | ORG_ADMIN edits; other roles view |
+| `/{organisation}/plugins/flow` → **Flow Studio** tab | Every API key in the organisation, or one key | ORG_ADMIN edits; other roles view |
+| API key detail → **Plugins** section | One API key | Key owner per RBAC |
+
+These four sources are combined into one execution order per request — see [Architecture](/docs/plugins/architecture) for how, and [Execution Lanes](/docs/plugins/execution-lanes) for the sequential/parallel/async model they share.
+
+## When To Use What
 
 | Need | Use |
 | --- | --- |
-| Export selected request decisions to a SIEM or audit archive. | Plugin |
-| Add tenant metadata, trace headers, or custom billing tags before upstream work. | Plugin |
-| Consult an enterprise approval system for sensitive model use. | Plugin |
-| Send webhooks, email, or analytics events after a response. | Plugin |
-| Recommend an internal offer or workflow based on conversation signals. | Plugin |
-| Branch on request content, route by tier, or chain several conditional steps together. | [Flow Studio](/docs/plugins/flow-studio) |
-| Enforce requests per minute, request bytes, token windows, or concurrency. | Guardrail policy or ratelimit module |
-| Detect prompt injection, unsafe output, leakage, or redaction needs. | [SafetySec](/docs/security-and-guardrails/safetysec-engine) |
-| Decide whether an API key can call a model or MCP server. | Access grant |
-| Stop spend or usage after a period limit is reached. | Budget or quota |
+| Export request decisions to a SIEM or audit archive | Plugin |
+| Add tenant metadata or a custom header before upstream work | Plugin |
+| Send a webhook or email after a response | Plugin |
+| Branch on request content, route by tier, or chain conditional steps | [Flow Studio](/docs/plugins/flow-studio) |
+| Enforce requests per minute, payload size, or concurrency | Guardrail policy or ratelimit module |
+| Detect prompt injection, unsafe output, or leakage | [SafetySec](/docs/security-and-guardrails/safetysec-engine) |
+| Decide whether an API key can call a model or MCP server | Access grant |
+| Stop spend or usage after a period limit | Budget or quota |
 
 ## How Plugins Differ From Other Controls
 
-Plugins work beside guardrails, SafetySec, budgets, quotas, and access grants. They do not replace them.
-
 | Control | Primary question | Typical owner |
 | --- | --- | --- |
-| Access grants | Can this virtual API key call this model or MCP server? | Operator |
-| Guardrail policies | Does this traffic satisfy configured runtime limits? | Operator |
-| Ratelimit modules | Is the traffic shape acceptable right now? | Odock runtime policy |
-| SafetySec modules | Is the prompt or response safe according to security rules? | Security operator |
-| Budgets | Would this exceed a spend boundary? | Finance or platform operator |
-| Quotas | Would this exceed a usage boundary? | Platform operator |
-| Plugins | Does this deployment need custom workflow, integration, transformation, or evidence? | Deployment owner with Odock review |
+| Access grants | Can this API key call this model or MCP server? | ORG_ADMIN |
+| Guardrail policies | Does this traffic satisfy configured runtime limits? | ORG_ADMIN |
+| SafetySec modules | Is the prompt or response safe? | ORG_ADMIN |
+| Budgets and quotas | Would this exceed a spend or usage boundary? | ORG_ADMIN or finance |
+| Plugins and flows | Does this deployment need custom workflow, integration, transformation, or evidence? | ORG_ADMIN, with Odock for custom code |
 
-For the broader security model, start with [Security & Guardrails](/docs/security-and-guardrails). For prompt and response safety, see [SafetySec](/docs/security-and-guardrails/safetysec-engine). For MCP-specific tool risk, see [MCP Security](/docs/models-and-mcp/mcp-servers/security).
+For the broader security model, start with [Security & Guardrails](/docs/security-and-guardrails). For MCP-specific tool risk, see [MCP Security](/docs/models-and-mcp/mcp-servers/security).
 
-## Plugin Design Philosophy
-
-Odock plugin design follows these principles.
+## Design Principles
 
 | Principle | Meaning |
 | --- | --- |
-| Modularity | A plugin should solve one clear problem and be replaceable without changing application code. |
-| Least privilege | A plugin should receive only the capabilities, lifecycle moments, and data it needs. |
-| Lifecycle placement | A plugin should run where the required context exists, not earlier. |
-| Composability | Multiple plugins should be able to contribute independent decisions or evidence without becoming one large custom subsystem. |
-| Observability | Operators should understand what the plugin allowed, blocked, transformed, emitted, or recorded. |
-| Deployment-specific behavior | Plugins can express behavior that belongs to a customer, tenant, environment, vendor, or private integration. |
-
-Contact Odock when a plugin needs internal implementation details, custom contracts, private deployment setup, or security review. Public documentation covers the operating model, not private gateway wiring.
+| Modularity | A plugin solves one problem and is replaceable without changing application code. |
+| Least privilege | A plugin receives only the lifecycle moments, capabilities, and data it needs. |
+| Lifecycle placement | A plugin runs where its required context exists, not earlier. |
+| Composability | Several plugins and a flow can contribute to the same request without becoming one large custom system. |
+| Observability | Every plugin decision is visible: allow, block, transform, or record. |
 
 ## Section Guide
 
-- [Architecture](/docs/plugins/architecture): public-safe architecture, lifecycle gates, least privilege, and observability.
-- [Plugin Lifecycle](/docs/plugins/plugin-lifecycle): how plugins participate before upstream work, after upstream response, and after response or evidence collection.
-- [Execution Lanes](/docs/plugins/execution-lanes): how plugins and flows at the same lifecycle moment are grouped into sequential, parallel, and async lanes.
-- [Flow Studio](/docs/plugins/flow-studio): the visual and YAML automation builder for conditional, multi-step behavior across the same lifecycle moments.
-- [Marketplace](/docs/plugins/marketplace): coming-soon marketplace concept for discovering, publishing, selling, reviewing, and enabling plugins.
+- [Architecture](/docs/plugins/architecture): lifecycle gates, the execution layers, capabilities, and observability.
+- [Plugin Lifecycle](/docs/plugins/plugin-lifecycle): the four gateway phases — pre-route, pre-upstream, post-upstream, post-response — and what a plugin can do at each.
+- [Execution Lanes](/docs/plugins/execution-lanes): sequential, parallel, and async ordering within one lifecycle moment.
+- [Flow Studio](/docs/plugins/flow-studio): the visual and YAML flow builder.
+- [Marketplace](/docs/plugins/marketplace): browse, activate, and configure catalog plugins.
+- [Plugin Board](/docs/plugins/plugin-board): the organisation-wide ordered pipeline.
+- [API Key Plugin Chain](/docs/plugins/api-key-plugin-chain): plugins bound to one API key.
 - [Evaluate A Plugin](/docs/plugins/evaluate-plugin): checklist for deciding whether to enable a plugin.
-- [Request A Custom Plugin](/docs/plugins/request-custom-plugin): current public-safe process for requesting custom plugin work from Odock.
+- [Request A Custom Plugin](/docs/plugins/request-custom-plugin): process for requesting a plugin that is not in the catalog.
+- [Tutorials](/docs/plugins/tutorials): step-by-step walkthroughs.

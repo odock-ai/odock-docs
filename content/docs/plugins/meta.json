@@ -8,7 +8,10 @@
     "execution-lanes",
     "flow-studio",
     "marketplace",
+    "plugin-board",
+    "api-key-plugin-chain",
     "evaluate-plugin",
-    "request-custom-plugin"
+    "request-custom-plugin",
+    "tutorials"
   ]
 }

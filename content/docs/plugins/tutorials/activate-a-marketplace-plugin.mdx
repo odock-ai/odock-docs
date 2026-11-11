@@ -1,0 +1,56 @@
+---
+title: Activate A Marketplace Plugin
+icon: Store
+description: Turn on a catalog plugin and make it run for every request in your organisation.
+---
+
+# Activate A Marketplace Plugin
+
+**Goal:** activate an audit-export plugin and make it record every request, organisation-wide.
+
+<Steps>
+
+<Step>
+Open `/{organisation}/plugins`.
+</Step>
+
+<Step>
+Find the plugin and click **Activate**.
+
+For a Free or Community plugin this takes effect immediately. If the card shows a payment or approval state instead, see [Tiers](/docs/plugins/marketplace#tiers) — you cannot configure or place the plugin until that clears.
+</Step>
+
+<Step>
+Open the plugin's profile and review **Configuration**.
+
+Set any organisation-wide settings the plugin needs. If it requires a secret (an API token, a signing secret), add it under **Admin Variables** — the value is encrypted in your browser before it is sent.
+</Step>
+
+{/* GIF: Activating a plugin and setting its configuration and admin variables (/gifs/plugins-activate-and-configure.gif) */}
+
+<Step>
+Go to `/{organisation}/plugins/flow` → **Plugin board**.
+</Step>
+
+<Step>
+Drag the plugin into the **post-response** column, **After response** section.
+
+Audit and export work belongs after the response has been sent — it should never delay the caller. See [Plugin Lifecycle](/docs/plugins/plugin-lifecycle) if you are unsure which column fits your plugin.
+</Step>
+
+<Step>
+Save.
+</Step>
+
+<Step>
+Send a test request with any API key in the organisation, then check [Usage Monitoring](/docs/observability/usage-records) for that request.
+
+The plugin's execution should appear in the request's evidence.
+</Step>
+
+</Steps>
+
+## Next
+
+- [Build an organisation plugin board](/docs/plugins/tutorials/build-an-organisation-plugin-board) to place a plugin that runs before upstream work instead.
+- [Bind a plugin to an API key](/docs/plugins/tutorials/bind-a-plugin-to-an-api-key) to scope a plugin to one key instead of the whole organisation.

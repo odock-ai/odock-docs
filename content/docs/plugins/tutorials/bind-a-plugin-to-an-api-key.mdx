@@ -1,0 +1,56 @@
+---
+title: Bind A Plugin To An API Key
+icon: Link2
+description: Scope a plugin to one API key with its own settings, instead of the whole organisation.
+---
+
+# Bind A Plugin To An API Key
+
+**Goal:** send a notification for one application's traffic only, with settings different from the organisation default.
+
+<Steps>
+
+<Step>
+Confirm the plugin is activated for the organisation and, if it needs a secret, has an admin variable set on its profile — see [Activate a Marketplace plugin](/docs/plugins/tutorials/activate-a-marketplace-plugin).
+</Step>
+
+<Step>
+Open the target API key's detail page → **Plugins**.
+</Step>
+
+<Step>
+Review the read-only banner showing the organisation board and flow.
+
+This tells you what already runs on this key before your binding does.
+</Step>
+
+<Step>
+Add the plugin from the available list.
+
+If it does not appear, you may not have RBAC to bind it, or it may not be entitled to this key — see [API Key Plugin Chain: RBAC](/docs/plugins/api-key-plugin-chain#rbac).
+</Step>
+
+{/* GIF: Adding a plugin to an API key's plugin chain and setting its execution variables (/gifs/plugins-key-bind.gif) */}
+
+<Step>
+Set its execution variables for this key — for example, a different notification channel or a different threshold than the organisation-wide setting.
+</Step>
+
+<Step>
+Enable the binding and save.
+</Step>
+
+<Step>
+Send a test request with this key and confirm the plugin ran with the key-level settings, not the organisation default.
+</Step>
+
+</Steps>
+
+## If The Plugin Already Runs Through The Board Or A Flow
+
+Binding it again at the key level does not replace that — both executions run, each with its own settings. This only works if the plugin's profile has **allow keys to reuse this plugin** turned on; otherwise the key-level option is not offered.
+
+## Next
+
+- [API Key Plugin Chain](/docs/plugins/api-key-plugin-chain) for the full reference.
+- [Debug a flow run](/docs/plugins/flow-studio/tutorials/debug-a-flow-run) if you need to confirm execution order across the board, flows, and key bindings together.

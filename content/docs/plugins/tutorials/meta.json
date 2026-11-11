@@ -1,0 +1,10 @@
+{
+  "title": "Tutorials",
+  "icon": "ListChecks",
+  "pages": [
+    "index",
+    "activate-a-marketplace-plugin",
+    "build-an-organisation-plugin-board",
+    "bind-a-plugin-to-an-api-key"
+  ]
+}

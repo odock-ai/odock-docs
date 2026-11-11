@@ -8,7 +8,7 @@ description: Practical checklist for deciding whether to enable a plugin.
 
 Evaluate a plugin before enabling it because plugins can participate in runtime enforcement, transformation, external integrations, and evidence collection.
 
-Use this checklist for built-in, marketplace, private/internal, and custom-developed plugins.
+Use this checklist for catalog plugins from the [Marketplace](/docs/plugins/marketplace) and for custom-developed plugins.
 
 ## 1. Define The Requirement
 
@@ -60,13 +60,14 @@ Use standard sections when possible:
 
 | Question | Why it matters |
 | --- | --- |
-| Does it run before upstream work? | It may affect what leaves Odock. |
-| Does it run after upstream response? | It may affect what the caller receives. |
-| Does it run after response/evidence? | It should usually be non-blocking audit, analytics, webhook, or email work. |
+| Does it run at pre-route? | It may change the target model or block before any cost is committed. |
+| Does it run at pre-upstream? | It may affect what leaves Odock. |
+| Does it run at post-upstream? | It may affect what the caller receives. |
+| Does it run at post-response? | It should usually be non-blocking audit, analytics, webhook, or email work. |
 | Can it block? | Operators need a user-visible error reason and rollout plan. |
 | Can it transform? | Operators need to know which fields can change. |
 
-The plugin should run only where it has the right context. If a marketplace listing does not explain lifecycle placement clearly, do not enable it without review.
+The plugin should run only where it has the right context. If a Marketplace listing does not explain lifecycle placement clearly, do not enable it without review. See [Plugin Lifecycle](/docs/plugins/plugin-lifecycle) for what each gate allows.
 
 ## 4. Review Capabilities
 
@@ -111,7 +112,7 @@ A plugin should produce enough evidence to operate it:
 | Error and retry state | Distinguish plugin failure from intended enforcement. |
 | Timing | Understand latency added by response-path plugins. |
 
-For current custom plugin delivery, use [Request A Custom Plugin](/docs/plugins/request-custom-plugin). For the planned self-service marketplace model, see [Marketplace](/docs/plugins/marketplace).
+Browse existing options in the [Marketplace](/docs/plugins/marketplace) first. If nothing fits, use [Request A Custom Plugin](/docs/plugins/request-custom-plugin).
 
 ## 7. Plan Rollout
 

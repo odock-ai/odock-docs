@@ -1,0 +1,62 @@
+---
+title: Plugin Board
+icon: Columns3
+description: Arrange activated plugins into an ordered, organisation-wide pipeline.
+---
+
+# Plugin Board
+
+The Plugin Board places activated plugins onto the request lifecycle for the whole organisation. Open `/{organisation}/plugins/flow` and select the **Plugin board** tab (**Flow Studio** is the default tab; the board is the older, simpler alternative — see [Flow Studio](/docs/plugins/flow-studio) for the graph-based option).
+
+The board runs at layer 2 of the [execution layers](/docs/plugins/architecture#execution-layers): after the deployment baseline, before the API key plugin chain and flows.
+
+## Layout
+
+The board has one column per lifecycle stage: **Request**, then a column for each stage between it and **Response**. Each column has lane sections:
+
+| Section | Lane |
+| --- | --- |
+| In order | Sequential |
+| In parallel | Parallel |
+| After response | Async — only on the post-response column |
+
+Deployment baseline plugins appear as locked rows at the top of each column — they always run first in their lane and cannot be reordered or removed here. See [Execution Lanes](/docs/plugins/execution-lanes) for what each lane means for ordering and blocking.
+
+{/* GIF: Plugin board — columns per stage, lane sections, locked baseline rows (/gifs/plugins-board-layout.gif) */}
+
+## Placing A Plugin
+
+<Steps>
+
+<Step>
+Open `/{organisation}/plugins/flow` → **Plugin board**.
+</Step>
+
+<Step>
+Drag an activated plugin from the available list into the stage column and lane section where it should run.
+
+You can also use the **+** control on a lane section instead of dragging. Valid drop targets highlight as you drag; stages the plugin does not support fade out.
+</Step>
+
+<Step>
+Click the placed card to configure it: which stages it runs at, its lane within each stage, and its execution variables (per-placement settings distinct from the plugin's organisation-wide configuration).
+</Step>
+
+<Step>
+Save.
+
+The change applies to every API key in the organisation on the next request — no restart or redeploy.
+</Step>
+
+</Steps>
+
+## RBAC
+
+| Action | Role |
+| --- | --- |
+| View the board | Every role |
+| Add, remove, reorder, or configure a card | ORG_ADMIN |
+
+## Relationship To Flows
+
+A card on the board and a node in a Flow Studio graph occupy the same layer and the same lanes — they are two ways to place a plugin at layer 2. Use the board for a simple ordered pipeline; use a flow when placement needs a condition, a loop, or a multi-step chain. See [Flow Studio: Execution Order](/docs/plugins/flow-studio/execution-order) for how the board, flows, and the API key plugin chain combine into one request order.

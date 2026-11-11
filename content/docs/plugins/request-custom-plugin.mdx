@@ -1,29 +1,23 @@
 ---
 title: Request A Custom Plugin
 icon: Wrench
-description: Public-safe process for requesting a custom plugin from Odock.
+description: Process for requesting a plugin that is not in the Marketplace catalog.
 ---
 
 # Request A Custom Plugin
 
-Request a custom plugin when you need deployment-specific workflow, integration, transformation, or evidence behavior that is not part of standard Odock controls.
+Check the [Marketplace](/docs/plugins/marketplace) first — most integration, audit, and notification needs are already covered by a catalog plugin you can activate directly.
 
-The Odock gateway already includes a modular plugin engine. The self-service Plugin Marketplace is still coming soon, so custom plugins are currently requested through the Odock team. This lets Odock review lifecycle placement, least-privilege capabilities, user-visible behavior, observability, security, and deployment setup before a plugin is enabled.
-
-This page is for users and operators. It does not provide internal implementation contracts, source-code paths, private interfaces, storage wiring, queue or worker internals, or admin-only secrets. Odock will provide the full implementation path for approved custom work.
+Request a custom plugin when you need deployment-specific workflow, integration, transformation, or evidence behavior the catalog does not have. Custom plugins are built by the Odock team, which reviews lifecycle placement, least-privilege capabilities, user-visible behavior, observability, and security before the plugin is enabled.
 
 ## Current Model
 
 Today:
 
-- the modular plugin engine exists in the Odock gateway
-- plugins can participate in request-aware, response-aware, and evidence-aware lifecycle moments
-- plugin work can include webhooks, email, external tools, enterprise policy systems, audit export, DLP, analytics, recommendation workflows, and metadata enrichment
-- custom plugin requests go through the Odock team
+- the plugin engine runs request-aware, response-aware, and evidence-aware behavior for both catalog and custom plugins
+- custom plugin work can include webhooks, email, external tools, enterprise policy systems, audit export, DLP, analytics, recommendation workflows, and metadata enrichment
+- custom plugin requests go through the Odock team, which handles implementation and rollout
 - Odock helps decide whether the requirement belongs in plugins, SafetySec, guardrails, budgets, quotas, access grants, or MCP security
-- implementation details remain deployment-managed and are not published in public documentation
-
-The future [Plugin Marketplace](/docs/plugins/marketplace) is intended to make discovery, publishing, selling, review, and self-service enablement possible. Until that is available, use this request process.
 
 ## Good Custom Plugin Candidates
 
@@ -52,7 +46,7 @@ Send a concise design brief with:
 | --- | --- |
 | Goal | One sentence describing what the plugin should do. |
 | Traffic type | Model traffic, MCP traffic, or both. |
-| Lifecycle moment | Before upstream work, after upstream response, after response/evidence, or unsure. |
+| Lifecycle moment | Pre-route, pre-upstream, post-upstream, post-response, or unsure. |
 | Scope | Organisation, team, tenant, API key, model, MCP server, or route. |
 | Action model | Observe, allow, block, transform, enrich, export, notify, or analyze. |
 | External systems | DLP, SIEM, approval, email, webhook, analytics, policy, recommendation, or other systems. |
@@ -62,7 +56,7 @@ Send a concise design brief with:
 | Rollout plan | Test scope, observe-only needs, production timeline, and rollback expectations. |
 | Compliance constraints | Data residency, retention, encryption, vendor review, or legal requirements. |
 
-Do not send admin-only secrets in the initial request. Odock will provide an approved secret exchange and deployment setup process when needed.
+Do not send credentials or secrets in the initial request. Odock will provide an approved secret exchange process when needed.
 
 ## Design Review Flow
 
@@ -100,19 +94,7 @@ These questions protect the deployment. They keep custom behavior modular, obser
 
 ## Implementation Boundary
 
-Odock will handle private implementation details for approved custom plugins, including the appropriate internal contract, deployment-specific configuration, testing strategy, security review, and rollout path.
-
-Public documentation will not describe:
-
-- internal plugin interfaces
-- gateway source-code paths
-- storage access wiring
-- private queue or worker behavior
-- secret handling internals
-- admin-only configuration
-- proprietary extension contracts
-
-When those details are required, contact the Odock team.
+Odock handles implementation for approved custom plugins: the internal contract, deployment-specific configuration, testing strategy, security review, and rollout path. You do not need to know how a plugin is built internally to request or operate one — only its lifecycle placement, capabilities, and evidence, covered in this brief.
 
 ## Acceptance Checklist
 

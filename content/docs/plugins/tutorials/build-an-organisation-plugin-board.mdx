@@ -1,0 +1,58 @@
+---
+title: Build An Organisation Plugin Board
+icon: Columns3
+description: Place a plugin at the right lifecycle stage and lane, and configure it per placement.
+---
+
+# Build An Organisation Plugin Board
+
+**Goal:** add a request-enrichment plugin that tags every request with organisation metadata before it reaches the model provider.
+
+<Steps>
+
+<Step>
+Confirm the plugin is activated — see [Activate a Marketplace plugin](/docs/plugins/tutorials/activate-a-marketplace-plugin) if it is not.
+</Step>
+
+<Step>
+Open `/{organisation}/plugins/flow` → **Plugin board**.
+</Step>
+
+<Step>
+Find the **pre-route** column — enrichment must run before routing decides which model or provider handles the request.
+</Step>
+
+<Step>
+Drag the plugin into the **In order** section.
+
+Use **In order** because this plugin writes metadata other steps may read later — it needs a fixed position, not a concurrent one. See [Execution Lanes](/docs/plugins/execution-lanes) if you are unsure which section fits.
+</Step>
+
+{/* GIF: Dragging a plugin card into a stage column and lane section (/gifs/plugins-board-drag-drop.gif) */}
+
+<Step>
+Click the card to open its placement settings.
+
+Set its execution variables for this placement — for example, which metadata field to write. These are separate from the plugin's organisation-wide **Configuration** on its profile page.
+</Step>
+
+<Step>
+Save.
+
+The board applies to every API key in the organisation on the next request.
+</Step>
+
+<Step>
+Send a test request and check its trace in [Usage Monitoring](/docs/observability/usage-records) to confirm the plugin ran before the provider call and the metadata was written.
+</Step>
+
+</Steps>
+
+## Reordering And Removing
+
+Drag a card between lane sections to change how it runs, or between columns to change when it runs — only stages the plugin supports accept the drop. Remove a card from its lane section menu; this only removes the placement, not the plugin's activation.
+
+## Next
+
+- [Bind a plugin to an API key](/docs/plugins/tutorials/bind-a-plugin-to-an-api-key) for behavior scoped to one key instead of the whole organisation.
+- [Flow Studio](/docs/plugins/flow-studio) when placement needs a condition instead of a fixed lane.

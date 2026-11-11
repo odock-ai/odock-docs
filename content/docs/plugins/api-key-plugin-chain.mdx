@@ -1,0 +1,61 @@
+---
+title: API Key Plugin Chain
+icon: Link2
+description: Bind plugins to one API key, on top of the organisation-wide board and flows.
+---
+
+# API Key Plugin Chain
+
+The API key plugin chain binds plugins to one API key. It runs at layer 3 of the [execution layers](/docs/plugins/architecture#execution-layers): after the deployment baseline and the organisation plugin board, before flows.
+
+Open an API key's detail page and go to the **Plugins** section.
+
+## Layout
+
+The key's chain uses the same board editor as the [Plugin Board](/docs/plugins/plugin-board), scoped to one key: a single **Key plugins** column with the same three lane sections (in order, in parallel, after response). Unlike the organisation board, the stages a plugin can be placed at are fixed by the plugin itself — you choose the lane, not the stage.
+
+A read-only banner shows the organisation board and flow that also apply to this key, so you can see the full order without leaving the page.
+
+{/* GIF: API key Plugins section — key plugin chain with a read-only organisation banner (/gifs/plugins-key-chain.gif) */}
+
+## Binding A Plugin
+
+<Steps>
+
+<Step>
+Open the API key's detail page → **Plugins**.
+</Step>
+
+<Step>
+Add a plugin from the available list — only plugins your role can bind to this key are offered (see [RBAC](#rbac)).
+</Step>
+
+<Step>
+Set its lane and its execution variables for this binding.
+
+Execution variables here override the plugin's organisation-wide configuration for this key only — for example, a different Slack channel than the organisation default.
+</Step>
+
+<Step>
+Enable the binding and save.
+</Step>
+
+</Steps>
+
+## Binding A Plugin Already On The Board Or A Flow
+
+A plugin that already runs through the organisation board or an organisation flow can still be bound again on a key, if its profile has **allow keys to reuse this plugin** turned on (set from the plugin's [profile page](/docs/plugins/marketplace#plugin-profile)). The key-level binding runs as a second, independent execution with its own settings — it does not replace or skip the organisation-level one.
+
+## RBAC
+
+| Role | Can bind to |
+| --- | --- |
+| ORG_ADMIN | Any API key in the organisation |
+| MANAGER | Keys owned by their managed team, or their own keys |
+| USER | Their own keys |
+
+Every role can view a key's chain if they can view the key.
+
+## Why Bind At The Key Level
+
+Use the key-level chain when behavior should apply to one application or workflow, not the whole organisation — a staging key that posts to a test Slack channel, or an internal tool that needs a plugin the rest of the organisation does not. For behavior every key should get, use the [Plugin Board](/docs/plugins/plugin-board) or an organisation-wide [flow](/docs/plugins/flow-studio) instead.
